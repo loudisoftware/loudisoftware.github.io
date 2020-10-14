@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="SRP：单一职责原则（The Single Responsibility Principle）一个类或者模块只负责完成一个职责或者功能。（一个类或者模块只应有一个修改它的原因）  一个类不能很好的命名时，表示没有想好这个类应该承担的职责。 一个类中的某些内容总是一起需要进行修改，可能就需要把相关的内容隔离出去。 类依赖过多的其它类，或者很多类都依赖该类说明不满足高内聚，低耦合的情况，一个类承担的责">
+<meta property="og:type" content="article">
+<meta property="og:title" content="面向对象设计原则">
+<meta property="og:url" content="http://example.com/2020/09/22/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/index.html">
+<meta property="og:site_name" content="WJAINNG">
+<meta property="og:description" content="SRP：单一职责原则（The Single Responsibility Principle）一个类或者模块只负责完成一个职责或者功能。（一个类或者模块只应有一个修改它的原因）  一个类不能很好的命名时，表示没有想好这个类应该承担的职责。 一个类中的某些内容总是一起需要进行修改，可能就需要把相关的内容隔离出去。 类依赖过多的其它类，或者很多类都依赖该类说明不满足高内聚，低耦合的情况，一个类承担的责">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-09-22T07:23:10.000Z">
+<meta property="article:modified_time" content="2020-09-22T10:09:14.304Z">
+<meta property="article:author" content="wjainng">
+<meta property="article:tag" content="面向对象">
+<meta property="article:tag" content="设计原则">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2020/09/22/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>面向对象设计原则 | WJAINNG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">WJAINNG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/09/22/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          面向对象设计原则
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-09-22 15:23:10 / 修改时间：18:09:14" itemprop="dateCreated datePublished" datetime="2020-09-22T15:23:10+08:00">2020-09-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" itemprop="url" rel="index"><span itemprop="name">面向对象</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="SRP：单一职责原则（The-Single-Responsibility-Principle）"><a href="#SRP：单一职责原则（The-Single-Responsibility-Principle）" class="headerlink" title="SRP：单一职责原则（The Single Responsibility Principle）"></a>SRP：单一职责原则（The Single Responsibility Principle）</h4><p>一个类或者模块只负责完成一个职责或者功能。（一个类或者模块只应有一个修改它的原因）</p>
+<ul>
+<li>一个类不能很好的命名时，表示没有想好这个类应该承担的职责。</li>
+<li>一个类中的某些内容总是一起需要进行修改，可能就需要把相关的内容隔离出去。</li>
+<li>类依赖过多的其它类，或者很多类都依赖该类说明不满足高内聚，低耦合的情况，一个类承担的责任过多。</li>
+</ul>
+<p>PS：单一职责可以实现代码的高内聚，低耦合，从而提高代码的复用性，可读性，可维护性</p>
+<h4 id="OCP：开放封闭原则（The-Open-Closed-Principle）"><a href="#OCP：开放封闭原则（The-Open-Closed-Principle）" class="headerlink" title="OCP：开放封闭原则（The Open Closed Principle）"></a>OCP：开放封闭原则（The Open Closed Principle）</h4><p>软件实体（模块、类、方法等）应该对扩展开放对修改关闭。添加新功能时应该是在已有代码的基础上新增模块、类、方法等，而不是修改已有的模块、类、方法。</p>
+<p><strong>抽象化是关键</strong><br>抽象的接口要尽可能的稳定，只规定具有的方法特征。通过不同的具体实现类来达到扩展的目的。（抽象层需要关闭修改）<br><strong>对可变性的封装是手段</strong><br><em>找到系统的可变因素，并将之封装起来。</em></p>
+<ul>
+<li>一种可变性不应当散落在代码的多个角落里，而应当被封装到一个对象里。</li>
+<li>一种可变现不应该和另一种可变性混合在一起。</li>
+</ul>
+<p>PS：多态，基于抽象而非实现编程，依赖注入都可以提高代码的可扩展性。</p>
+<h4 id="LSP：里氏替换原则（Liskov-Substitution-Principle）"><a href="#LSP：里氏替换原则（Liskov-Substitution-Principle）" class="headerlink" title="LSP：里氏替换原则（Liskov Substitution Principle）"></a>LSP：里氏替换原则（Liskov Substitution Principle）</h4><p>子类对象能够替换程序中的父类对象出现的任何地方，并且保证原来程序的逻辑行为不被破坏掉。（继承是为了增加新的行为，而不应该替换掉原有的行为）</p>
+<p>PS：如果子类不重写父类的方法肯定满足LSP原则。LSP原则用来指导继承关系中子类应该如何设计，确保子类在替换父类的时候，不改变原有程序的逻辑和程序的正确性。</p>
+<h4 id="ISP：接口隔离原则（The-Interface-Segregation-Principle）"><a href="#ISP：接口隔离原则（The-Interface-Segregation-Principle）" class="headerlink" title="ISP：接口隔离原则（The Interface Segregation Principle）"></a>ISP：接口隔离原则（The Interface Segregation Principle）</h4><p>客户端不应该强迫依赖它不需要的接口。（当一个接口中暴露了多个方法，但是客户端只需要使用其中的一个方法，因为这些方法是在一个接口中的，客户端被动的依赖了其它方法。）</p>
+<h4 id="DIP：依赖倒置原则（The-Dependency-Inversion-Principle）"><a href="#DIP：依赖倒置原则（The-Dependency-Inversion-Principle）" class="headerlink" title="DIP：依赖倒置原则（The Dependency Inversion Principle）"></a>DIP：依赖倒置原则（The Dependency Inversion Principle）</h4><p>高层模块不要依赖低层模块。高层模块和低层模块都应该依赖同一个抽象。抽象不要依赖具体实现细节，具体实现细节依赖抽象。</p>
+<h4 id="KISSS原则"><a href="#KISSS原则" class="headerlink" title="KISSS原则"></a>KISSS原则</h4><p>尽量保持代码的简洁。提高代码的可读性和可维护性。</p>
+<ul>
+<li>不要使用特殊的语法。</li>
+<li>不要重复造轮子，而应该使用已有的类库。</li>
+</ul>
+<h4 id="YAGNI原则"><a href="#YAGNI原则" class="headerlink" title="YAGNI原则"></a>YAGNI原则</h4><p>不要去设计当前用不到的功能。（不要做过度设计）</p>
+<h4 id="DRY原则"><a href="#DRY原则" class="headerlink" title="DRY原则"></a>DRY原则</h4><p>不要重复你自己。<br>典型的重复情况有：实现逻辑重复，功能语义重复和代码执行重复，其中功能语义重复和执行重复违背了DRY原则。<strong>实现逻辑重复可以考虑是不是有公用的方法可以抽离</strong>语义的重复和执行的重复应当避免。</p>
+<p>为了避免重复应该提高代码的复用性：</p>
+<ul>
+<li>减少代码耦合。</li>
+<li>满足单一职责原则。</li>
+<li>模块化。</li>
+<li>业务与非业务逻辑分离。</li>
+</ul>
+<h4 id="LOD（迪米特法则）"><a href="#LOD（迪米特法则）" class="headerlink" title="LOD（迪米特法则）"></a>LOD（迪米特法则）</h4><p>只和“朋友”说话，不和“陌生人”说话。<br>朋友的定义：</p>
+<ul>
+<li>当前对象本身。</li>
+<li>以方法参数传入当前对象方法中的对象。</li>
+<li>当前对象的实例变量直接引用的对象。</li>
+<li>当前对象的实例变量如果是一个集合，则集合中的元素也是朋友。</li>
+<li>当前对象所创建的对象。</li>
+</ul>
+<p>系统设计时的注意事项：</p>
+<ul>
+<li>应当创建有弱耦合性的类，类之间的耦合越弱，越有利于复用。（对弱耦合的类的修改影响的的类会比较少）</li>
+<li>每一个类应当尽量降低成员的访问权限，封装好自己的状态。</li>
+<li>只要有可能，一个类应当设计成不变类。</li>
+<li>一个对象应该降低对其它对象的引用。</li>
+</ul>
+<h4 id="合成-聚合复用原则（CARP）"><a href="#合成-聚合复用原则（CARP）" class="headerlink" title="合成/聚合复用原则（CARP）"></a>合成/聚合复用原则（CARP）</h4><p>要尽量使用合成/聚合，尽量不要使用继承，新的对象通过对原有对象的委派达到复用已有功能的目的。</p>
+<p><strong>组合复用的优点：</strong></p>
+<ul>
+<li>成分对象的内部细节是新对象所看不见的，为“黑箱”复用。</li>
+<li>新的类可以将焦点集中在一个任务上。</li>
+<li>新对象可以动态地引用与成分对象类型相同的对象。</li>
+</ul>
+<p><strong>继承复用的优点：</strong></p>
+<ul>
+<li>在层级关系上增加新的功能实现较为容易，超类的功能通过继承关系自动进入子类。</li>
+<li>修改或扩展继承的实现较为容易。</li>
+</ul>
+<p><strong>继承复用的缺点：</strong></p>
+<ul>
+<li>继承复用破坏封装，继承将超类的实现细节暴露给子类。又称为“白箱”复用。</li>
+<li>如果超类的实现发生改变，则子类的实现也不得不发生改变，以适应超类的变化。（例如接口定义的变更，增加新的接口等）</li>
+<li>从超类继承而来的实现是静态的，不可能在运行时间内发生改变，没有足够的灵活性。（不能像合成一样通过替换不同的委托类达到不同的实现目的）</li>
+</ul>
+<blockquote>
+<p>“Is-A”是严格的分类学意义上的定义，意思是一个类是另一个类的“一种”。而“Has-A”则不同，<em>它表示某一个角色具有某一项责任</em>只有在满足“IS-A”的情况下才考虑使用继承。</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" rel="tag"># 面向对象</a>
+              <a href="/tags/%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/" rel="tag"># 设计原则</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/09/20/%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1%E5%8C%85%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99/" rel="prev" title="面向对象包设计原则">
+      <i class="fa fa-chevron-left"></i> 面向对象包设计原则
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/23/%E5%8F%AF%E5%A4%8D%E5%88%B6%E7%9A%84%E9%A2%86%E5%AF%BC%E5%8A%9B/" rel="next" title="可复制的领导力">
+      可复制的领导力 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#SRP%EF%BC%9A%E5%8D%95%E4%B8%80%E8%81%8C%E8%B4%A3%E5%8E%9F%E5%88%99%EF%BC%88The-Single-Responsibility-Principle%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">SRP：单一职责原则（The Single Responsibility Principle）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#OCP%EF%BC%9A%E5%BC%80%E6%94%BE%E5%B0%81%E9%97%AD%E5%8E%9F%E5%88%99%EF%BC%88The-Open-Closed-Principle%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">OCP：开放封闭原则（The Open Closed Principle）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LSP%EF%BC%9A%E9%87%8C%E6%B0%8F%E6%9B%BF%E6%8D%A2%E5%8E%9F%E5%88%99%EF%BC%88Liskov-Substitution-Principle%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">LSP：里氏替换原则（Liskov Substitution Principle）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ISP%EF%BC%9A%E6%8E%A5%E5%8F%A3%E9%9A%94%E7%A6%BB%E5%8E%9F%E5%88%99%EF%BC%88The-Interface-Segregation-Principle%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">ISP：接口隔离原则（The Interface Segregation Principle）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DIP%EF%BC%9A%E4%BE%9D%E8%B5%96%E5%80%92%E7%BD%AE%E5%8E%9F%E5%88%99%EF%BC%88The-Dependency-Inversion-Principle%EF%BC%89"><span class="nav-number">5.</span> <span class="nav-text">DIP：依赖倒置原则（The Dependency Inversion Principle）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#KISSS%E5%8E%9F%E5%88%99"><span class="nav-number">6.</span> <span class="nav-text">KISSS原则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#YAGNI%E5%8E%9F%E5%88%99"><span class="nav-number">7.</span> <span class="nav-text">YAGNI原则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DRY%E5%8E%9F%E5%88%99"><span class="nav-number">8.</span> <span class="nav-text">DRY原则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LOD%EF%BC%88%E8%BF%AA%E7%B1%B3%E7%89%B9%E6%B3%95%E5%88%99%EF%BC%89"><span class="nav-number">9.</span> <span class="nav-text">LOD（迪米特法则）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%88%E6%88%90-%E8%81%9A%E5%90%88%E5%A4%8D%E7%94%A8%E5%8E%9F%E5%88%99%EF%BC%88CARP%EF%BC%89"><span class="nav-number">10.</span> <span class="nav-text">合成&#x2F;聚合复用原则（CARP）</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="wjainng"
+      src="/images/mountain.jpg">
+  <p class="site-author-name" itemprop="name">wjainng</p>
+  <div class="site-description" itemprop="description">学而不思则罔思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wjainng</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Spring bean生命周期在Spring容器中bean是通过BeanDefinition表示的.其中描述了bean定义的各种属性,例如是不是抽象的,是否具有factory-method等. Bean的实例化 通过构造函数创建实例,例如通过xml文件中配置&lt;bean id&#x3D;&quot;clientService&quot; class&#x3D;&quot;example.ClientService">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring笔记汇总">
+<meta property="og:url" content="http://example.com/2019/12/15/2019-12-15-Spring%E7%AC%94%E8%AE%B0%E6%B1%87%E6%80%BB/index.html">
+<meta property="og:site_name" content="WJAINNG">
+<meta property="og:description" content="Spring bean生命周期在Spring容器中bean是通过BeanDefinition表示的.其中描述了bean定义的各种属性,例如是不是抽象的,是否具有factory-method等. Bean的实例化 通过构造函数创建实例,例如通过xml文件中配置&lt;bean id&#x3D;&quot;clientService&quot; class&#x3D;&quot;example.ClientService">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-12-15T14:15:44.000Z">
+<meta property="article:modified_time" content="2020-09-16T15:15:44.774Z">
+<meta property="article:author" content="wjainng">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2019/12/15/2019-12-15-Spring%E7%AC%94%E8%AE%B0%E6%B1%87%E6%80%BB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Spring笔记汇总 | WJAINNG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">WJAINNG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/12/15/2019-12-15-Spring%E7%AC%94%E8%AE%B0%E6%B1%87%E6%80%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring笔记汇总
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-12-15 22:15:44" itemprop="dateCreated datePublished" datetime="2019-12-15T22:15:44+08:00">2019-12-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Spring-bean生命周期"><a href="#Spring-bean生命周期" class="headerlink" title="Spring bean生命周期"></a>Spring bean生命周期</h1><p>在Spring容器中bean是通过BeanDefinition表示的.其中描述了bean定义的各种属性,例如是不是抽象的,是否具有factory-method等.</p>
+<h3 id="Bean的实例化"><a href="#Bean的实例化" class="headerlink" title="Bean的实例化"></a>Bean的实例化</h3><ol>
+<li><p>通过构造函数创建实例,例如通过xml文件中配置<code>&lt;bean id=&quot;clientService&quot; class=&quot;example.ClientService/&gt;.</code></p>
+</li>
+<li><p>通过静态工厂方法创建实例,例如通过xml中的<code>&lt;bean id=&quot;clientService&quot; factory-method=&#39;createInstance&#39; class=&quot;example.ClientService&quot;/&gt;</code>则通过example.ClientService.createInstance静态方法创建example.ClientService.</p>
+</li>
+<li><p>通过实例的工厂方法创建实例,<code>&lt;bean id=&quot;clientService&quot; factory-bean=&quot;serviceLocator&quot; factory-method=&quot;createInstance&quot;&gt;</code>其中serviceLocator为定义的另外一个bean的名字,通过serviceLocator.createInstance方法创建clientService实例.</p>
+</li>
+</ol>
+<h3 id="依赖注入的方式"><a href="#依赖注入的方式" class="headerlink" title="依赖注入的方式"></a>依赖注入的方式</h3><ol>
+<li>构造函数注入。</li>
+<li>setter注入。</li>
+<li>方法注入。<br> 3.1 lookup method injection。<br> <code>&lt;public|protected&gt; [abstract] &lt;return-type&gt; theMethodName(no-arguments);</code>被注入的方法必须满足上面的声明格式。(相当于一个模板方法)<br> 3.2 method replacement。<br> 通过实现MethodReplacer接口，提供一个新的方法替换原来的方法。</li>
+</ol>
+<blockquote>
+<p>方法注入是通过代理实现，优先考虑构造函数注入，可以保证对象实例化后其属性是已经赋值了的。</p>
+</blockquote>
+<h3 id="作用域"><a href="#作用域" class="headerlink" title="作用域"></a>作用域</h3><p>single：默认是single类型，容器中只有一个实例，并且由容器管理生命周期。<br>prototype：每次从容器中获取时都会实例化一个新的对象。<br><em>request,session,application,websocket</em>：需要在web环境下才能使用。</p>
+<blockquote>
+<p>注意：</p>
+<ol>
+<li>prototype的对象，其初始化回调方法会执行，但是对应的销毁回调方法不会执行，因此对一个作用域为prototype的对象，定义销毁方法没意义。</li>
+<li>如果需要把作用域为prototype的对象注入到作用域为single的对象，需要使用lookup method injection。或者<code>@Scope(value=&quot;prototype&quot;,proxyMode=ScopedProxyMode.TARGET_CLASS)或者增加&lt;aop:scoped-proxy/&gt;&lt;bean id=&quot;userPreferences&quot; class=&quot;com.something.UserPreferences&quot; scope=&quot;session&quot;&gt;&lt;aop:scoped-proxy/&gt;&lt;/bean&gt;</code></li>
+</ol>
+</blockquote>
+<h3 id="bean的生命周期"><a href="#bean的生命周期" class="headerlink" title="bean的生命周期"></a>bean的生命周期</h3><ul>
+<li>初始化回调方法<ul>
+<li>@PostConstructor。（通过BeanPostProcessor实现）</li>
+<li>实现InitializingBean。（afterPropertiesSet方法）</li>
+<li>手工配置init method或者default init method。</li>
+</ul>
+</li>
+<li>销毁回调方法<ul>
+<li>@PreDestroy。（通过BeanPostProcessor实现）</li>
+<li>实现DisposableBean。（destroy方法）</li>
+<li>手工配置destroy method或者default destroy method。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>如果同一个方法多次配置也只会执行一次，另外需要注意作用域为prototype的实例，对应的销毁回调方法不会执行。（<em>AOP的实现是通过BeanPostProcessor的postProcessAfterInitailization实现，因此回调方法不会被拦截</em>）</p>
+</blockquote>
+<ul>
+<li><p>启动和关闭回调方法（容器收到启动或者关闭方法时执行）<br>由实现LifecycleProcessor的类具体实现（DefaultLifecycleProcessor）。</p>
+</li>
+<li><p>容器关闭的回调方法<br>通过ctx.registerShutdownHook()实现。</p>
+</li>
+</ul>
+<h3 id="Spring容器的扩展点"><a href="#Spring容器的扩展点" class="headerlink" title="Spring容器的扩展点"></a>Spring容器的扩展点</h3><ul>
+<li>通过BeanPostProcessor自定义bean.</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">该接口中的方法在bean实例化之后执行</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BeanPostProcessor</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    该方法在bean的任何初始化方法之前执行,例如InitializingBean的afterPropertiesSet,自定义的init-method,但是在其bean对应的属性已经赋值之后(例如setter注入的属性)</span></span><br><span class="line"><span class="comment">    可以返回目标实例的包装实例.</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="function"><span class="keyword">default</span> Object <span class="title">postProcessBeforeInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">    	<span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    该方法在初始化方法执行后执行,例如InitializingBean的afterPropertiesSet和自定义的init-method后</span></span><br><span class="line"><span class="comment">    该方法在postProcessBeforeInstantiation方法返回了值的时候也会执行(触发了短路),但是postProcessBeforeInitialization不会执行.</span></span><br><span class="line"><span class="comment">    可以返回目标实例的包装实例.</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="function"><span class="keyword">default</span> Object <span class="title">postProcessAfterInitialization</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">    	<span class="keyword">return</span> bean;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">InstantiationAwareBeanPostProcessor</span> <span class="keyword">extends</span> <span class="title">BeanPostProcessor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    该方法在对象实例化之前调用,这个时候目标对象还未实例化,可以通过这个返回值来代替原本该生成的目标对象的实例.如果返回了不为null的对象,则后续只有postProcessAfterInitialization方法会调用.</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="function"><span class="keyword">default</span> Object <span class="title">postProcessBeforeInstantiation</span><span class="params">(Class&lt;?&gt; beanClass, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">    	<span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    该方法在目标对象实例化后调用,但是该实例的属性没有设置,该方法的返回值决定要不要调用postProcessPropertyValues方法.</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="function"><span class="keyword">default</span> <span class="keyword">boolean</span> <span class="title">postProcessAfterInstantiation</span><span class="params">(Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">    	<span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    该方法可以对属性值进行修改或者验证是否必填的属性是否有值.(该方法在属性注入之前调用)</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">    <span class="function"><span class="keyword">default</span> PropertyValues <span class="title">postProcessPropertyValues</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    		PropertyValues pvs, PropertyDescriptor[] pds, Object bean, String beanName)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">    </span><br><span class="line">    	<span class="keyword">return</span> pvs;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>以上两个接口分别代表了bean的初始化和实例化两个阶段可以进行扩展的地方。（只会对本容器的bean产生作用，并且对本身不会起作用）</p>
+</blockquote>
+<ul>
+<li>通过BeanFactoryPostProcessor自定义bean的元数据,即通过修改BeanDefinition的内容进行bean的自定义.</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BeanFactoryPostProcessor</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">postProcessBeanFactory</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> <span class="keyword">throws</span> BeansException</span>; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>通过FactoryBean自定义初始化逻辑<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">FactoryBean</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">    <span class="function">T <span class="title">getObject</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line">    Class&lt;?&gt; getObjectType();</span><br><span class="line">    <span class="function"><span class="keyword">default</span> <span class="keyword">boolean</span> <span class="title">isSingleton</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+通过FactoryBean可以自定义bean的生成.</li>
+</ul>
+<h3 id="注解相关的配置"><a href="#注解相关的配置" class="headerlink" title="注解相关的配置"></a>注解相关的配置</h3><blockquote>
+<p>@Autowired,@Inject,@Value,@Resource注解都是通过BeanPostProcessor实现的，因此不能在BeanPostProcessor和BeanFactoryPostProcessor中通过这些注解进行注入，必须通过XML文件或者@Bean进行注入。</p>
+</blockquote>
+<p>可以通过@Primary设置根据type注入时的优先级。还可以通过@Qualifier指定对应的名字。</p>
+<p>@Autowired默认使用byType注入，当找到多个时使用byName注入，默认是required。@Resource默认使用byName注入，后使用byType注入。</p>
+<p>自动注入的方式：none,byName,byType,constructor,autodetect(先构造函数再byType)</p>
+<h3 id="BeanNameAutoProxyCreator详解"><a href="#BeanNameAutoProxyCreator详解" class="headerlink" title="BeanNameAutoProxyCreator详解"></a>BeanNameAutoProxyCreator详解</h3><p>通过beanNames属性指定需要代理的bean的名字,通过interceptorNames指定代理对应的intercepts.主要方法的实现在AbstractAutoProxyCreator类中.</p>
+<ul>
+<li><p>postProcessBeforeInstantiation通过判断是否具有自定义的TargetSource如果有则通过为自定义的targetSource创建一个代理,并返回.(BeanPostProcessor的初始化相关的方法不会执行,只会执行postProcessBeforeInitialization方法)</p>
+</li>
+<li><p>postProcessAfterInitialization中通过warpIfNecessary进行代理类的创建.通过获取与该bean相关的advice和advisor,通过ProxyFactory最终创建对应的代理类.</p>
+<blockquote>
+<p>wrapIfNecessary中通过getAdvicesAndAdvisorsForBean的反回值判断是否需要创建代理类,该方法返回匹配对应bean的advice和advisor.</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="annotation-driven详解"><a href="#annotation-driven详解" class="headerlink" title="annotation-driven详解"></a>annotation-driven详解</h3><p>由TxNamespaceHandler中init方法的<code>registerBeanDefinitionParser(&quot;annotation-driven&quot;, new AnnotationDrivenBeanDefinitionParser());</code>可知,主要由AnnotationDrivenBeanDefinitionParser进行注解的解释.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> BeanDefinition <span class="title">parse</span><span class="params">(Element element, ParserContext parserContext)</span> </span>&#123;</span><br><span class="line">	registerTransactionalEventListenerFactory(parserContext);</span><br><span class="line">	String mode = element.getAttribute(<span class="string">&quot;mode&quot;</span>);</span><br><span class="line">	<span class="keyword">if</span> (<span class="string">&quot;aspectj&quot;</span>.equals(mode)) &#123;</span><br><span class="line">		<span class="comment">// mode=&quot;aspectj&quot;</span></span><br><span class="line">		registerTransactionAspect(element, parserContext);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="comment">// mode=&quot;proxy&quot;</span></span><br><span class="line">		AopAutoProxyConfigurer.configureAutoProxyCreator(element, parserContext);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>由上面的方法可知,根据mode的不同是通过aspectj还是proxy实现AOP.以proxy的方式为例:</p>
+<ul>
+<li>注册一个InfrastructureAdvisorAutoProxyCreator.</li>
+<li>创建TransactionAttributeSource定义.(AnnotationTransactionAttributeSource通过注解判断是否满足要求)</li>
+<li>创建TransactionInterceptor定义.</li>
+<li>创建TransactionAttributeSourceAdvisor定义.</li>
+</ul>
+<h3 id="Spring事物管理"><a href="#Spring事物管理" class="headerlink" title="Spring事物管理"></a>Spring事物管理</h3><p>从上面的内容可知声明式事物的时候会创建TransactionInterceptor,其实是一个是surround advice.可以在方法执行前后进行处理,例如开始事物,方法执行后,根据方法执行的情况进行事物的提交或者回滚.具体代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> Object <span class="title">invokeWithinTransaction</span><span class="params">(Method method, <span class="meta">@Nullable</span> Class&lt;?&gt; targetClass,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">final</span> InvocationCallback invocation)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        </span><br><span class="line">    <span class="comment">// If the transaction attribute is null, the method is non-transactional.</span></span><br><span class="line">    TransactionAttributeSource tas = getTransactionAttributeSource();</span><br><span class="line">    <span class="keyword">final</span> TransactionAttribute txAttr = (tas != <span class="keyword">null</span> ? tas.getTransactionAttribute(method, targetClass) : <span class="keyword">null</span>);</span><br><span class="line">    <span class="keyword">final</span> PlatformTransactionManager tm = determineTransactionManager(txAttr);</span><br><span class="line">    <span class="keyword">final</span> String joinpointIdentification = methodIdentification(method, targetClass, txAttr);</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">if</span> (txAttr == <span class="keyword">null</span> || !(tm <span class="keyword">instanceof</span> CallbackPreferringPlatformTransactionManager)) &#123;</span><br><span class="line">    <span class="comment">// Standard transaction demarcation with getTransaction and commit/rollback calls.</span></span><br><span class="line">    TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);</span><br><span class="line">    Object retVal = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">    	<span class="comment">// This is an around advice: Invoke the next interceptor in the chain.</span></span><br><span class="line">    	<span class="comment">// This will normally result in a target object being invoked.</span></span><br><span class="line">    	retVal = invocation.proceedWithInvocation();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">    	<span class="comment">// target invocation exception</span></span><br><span class="line">    	completeTransactionAfterThrowing(txInfo, ex);</span><br><span class="line">    	<span class="keyword">throw</span> ex;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">finally</span> &#123;</span><br><span class="line">    	cleanupTransactionInfo(txInfo);</span><br><span class="line">    &#125;</span><br><span class="line">    commitTransactionAfterReturning(txInfo);</span><br><span class="line">    <span class="keyword">return</span> retVal;</span><br><span class="line">    &#125;</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> ThrowableHolder throwableHolder = <span class="keyword">new</span> ThrowableHolder();</span><br><span class="line">        </span><br><span class="line">    <span class="comment">// It&#x27;s a CallbackPreferringPlatformTransactionManager: pass a TransactionCallback in.</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">    	Object result = ((CallbackPreferringPlatformTransactionManager) tm).execute(txAttr, status -&gt; &#123;</span><br><span class="line">    	TransactionInfo txInfo = prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);</span><br><span class="line">    	<span class="keyword">try</span> &#123;</span><br><span class="line">    		<span class="keyword">return</span> invocation.proceedWithInvocation();</span><br><span class="line">    	&#125;</span><br><span class="line">    	<span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">            <span class="keyword">if</span> (txAttr.rollbackOn(ex)) &#123;</span><br><span class="line">            	<span class="comment">// A RuntimeException: will lead to a rollback.</span></span><br><span class="line">            	<span class="keyword">if</span> (ex <span class="keyword">instanceof</span> RuntimeException) &#123;</span><br><span class="line">            		<span class="keyword">throw</span> (RuntimeException) ex;</span><br><span class="line">            	&#125;</span><br><span class="line">            	<span class="keyword">else</span> &#123;</span><br><span class="line">            		<span class="keyword">throw</span> <span class="keyword">new</span> ThrowableHolderException(ex);</span><br><span class="line">            	&#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">            	<span class="comment">// A normal return value: will lead to a commit.</span></span><br><span class="line">            	throwableHolder.throwable = ex;</span><br><span class="line">            	<span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">    	&#125;</span><br><span class="line">    	<span class="keyword">finally</span> &#123;</span><br><span class="line">    		cleanupTransactionInfo(txInfo);</span><br><span class="line">    	&#125;</span><br><span class="line">    	&#125;);</span><br><span class="line">        </span><br><span class="line">    	<span class="comment">// Check result state: It might indicate a Throwable to rethrow.</span></span><br><span class="line">    	<span class="keyword">if</span> (throwableHolder.throwable != <span class="keyword">null</span>) &#123;</span><br><span class="line">    		<span class="keyword">throw</span> throwableHolder.throwable;</span><br><span class="line">    	&#125;</span><br><span class="line">    	<span class="keyword">return</span> result;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (ThrowableHolderException ex) &#123;</span><br><span class="line">    	<span class="keyword">throw</span> ex.getCause();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (TransactionSystemException ex2) &#123;</span><br><span class="line">    	<span class="keyword">if</span> (throwableHolder.throwable != <span class="keyword">null</span>) &#123;</span><br><span class="line">    		logger.error(<span class="string">&quot;Application exception overridden by commit exception&quot;</span>, throwableHolder.throwable);</span><br><span class="line">    		ex2.initApplicationException(throwableHolder.throwable);</span><br><span class="line">    	&#125;</span><br><span class="line">    	<span class="keyword">throw</span> ex2;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable ex2) &#123;</span><br><span class="line">    	<span class="keyword">if</span> (throwableHolder.throwable != <span class="keyword">null</span>) &#123;</span><br><span class="line">    		logger.error(<span class="string">&quot;Application exception overridden by commit exception&quot;</span>, throwableHolder.throwable);</span><br><span class="line">    	&#125;</span><br><span class="line">        <span class="keyword">throw</span> ex2;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>事物相关对象说明:</p>
+<ul>
+<li><p>TransactionInfo:用来保存事物相关的信息.例如事物管理器,事物的状态,切入点,事物属性等.</p>
+</li>
+<li><p>TransactionAttribute:继承TransactionDefinition定义了事物的一些属性,例如传播方式,超时时间,隔离级别等.</p>
+</li>
+<li><p>TransactionManager:定义了事物处理的方法,通过TransactionDefinition获取TransactionStatus.提交或者回滚TransactionStatus代表的事物.</p>
+</li>
+<li><p>TransactionStatus:表示事物的状态,例如是否为新的事物,是否有savepoint,是否rollbackOnly,是否完成等.(只有是新事物才会真正的提交,与事物的传播机制有关)</p>
+</li>
+</ul>
+<blockquote>
+<p>关于事物管理器的说明：&lt;tx:annotation-driven transaction-manager=”transactionManager”&gt;&lt;/tx:annotation-driven&gt;中的transaction-manager为默认的事物管理器，不指定时其名字默认为”transactionManager”，也可以通过@Transaction(“txMg”)指定事务管理器，如果没有指定则会使用tx:annotation-driven中指定的事物管理器。</p>
+</blockquote>
+</br>
+
+<blockquote>
+<p><strong>注意：</strong>如果方法a定义为需要事物，方法b定义为需要新开启一个事物，如果在方法a中直接调用方法b不会生效，因为在方法a中调用b的对象是真实的对象而不是代理的对象，如果要生效需要把bean配置的expose-proxy属性设置为true，同时通过AopContext.currentProxy()调用b方法。</p>
+</blockquote>
+<p>事务的传播方式：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>REQUIRED</td>
+<td>需要事务，如果没有则新建一个事务</td>
+</tr>
+<tr>
+<td>SUPPORTS</td>
+<td>如果之前有事务则在事务中，否则无事务</td>
+</tr>
+<tr>
+<td>MANDATORY</td>
+<td>需要在事务中执行，如果之前没有事务则抛出异常</td>
+</tr>
+<tr>
+<td>REQUIRED_NEW</td>
+<td>需要开启一个新的事务，如果之前有事务则把之前的事务挂起</td>
+</tr>
+<tr>
+<td>NOT_SUPPORTED</td>
+<td>不支持事务，如果之前有事务则把之前的事务挂起</td>
+</tr>
+<tr>
+<td>NEVER</td>
+<td>不支持事务，如果有事务抛出异常</td>
+</tr>
+<tr>
+<td>NESTED</td>
+<td>如果有事务则作为嵌套事务运行，否则和REQUIRED一样</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>NESTED方式时如果外部事务回滚则NESTED中的内容也会回滚，但是REQUIRED_NEW时不会回滚。</p>
+</blockquote>
+<h3 id="AOP"><a href="#AOP" class="headerlink" title="AOP"></a>AOP</h3><p>@EnableAspectJAutoProxy后可以通过@Aspect进行AOP的设置。</p>
+<ol>
+<li>@Around 可以修改返回值，控制目标方法是否执行。</li>
+<li>@Before 不可以阻止目标方法的执行，除非抛出异常。</li>
+<li>@After </li>
+<li>@AfterReturning 正常返回时执行与AfterThrowing二选一，可以获得返回值。</li>
+<li>@AfterThrowing 抛出异常时执行。</li>
+</ol>
+<blockquote>
+<p>当有多个Advice时通过设置@Order或者实现Order接口确定优先级，值越少优先级越高。优先级高时（Around的前处理）Before会先执行，相反优先级低的（Around的后处理），After，AfterReturning，AfterThrowing会先执行。</p>
+</blockquote>
+<h3 id="通知"><a href="#通知" class="headerlink" title="通知"></a>通知</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ContextRefreshedEvent</td>
+<td>refresh方法调用时推送，bean被加载了，前后置处理器已经加载，单例已经实例化，ApplicationContext可以被使用</td>
+</tr>
+<tr>
+<td>ContextStartedEvent</td>
+<td>start方法调用时推送，Lifecycle对象会收到start的消息</td>
+</tr>
+<tr>
+<td>ContextStoppedEvent</td>
+<td>stop方法调用时推送，Lifecycle对象会收到start的消息</td>
+</tr>
+<tr>
+<td>ContextClosedEvent</td>
+<td>close方法调用时推送，此时单例将会被销毁（或许通过jvm的shutdown hook调用）</td>
+</tr>
+<tr>
+<td>RequestHandledEvent</td>
+<td>MVC中一个请求被处理完时推送</td>
+</tr>
+<tr>
+<td>ServletRequestHandledEvent</td>
+<td>是RequestHandledEvent的一个子类，增加了Servlet相关信息。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>默认事件是同步执行的，可以通过设置处理器，或者把方法标志位@Async在单独的线程中处理。</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/11/09/2019-11-09-%E6%95%B0%E6%8D%AE%E5%BA%93%E6%B1%87%E6%80%BB/" rel="prev" title="数据库汇总">
+      <i class="fa fa-chevron-left"></i> 数据库汇总
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/12/22/2019-12-22-Spring-MVC-%E7%AC%94%E8%AE%B0/" rel="next" title="Spring MVC 笔记">
+      Spring MVC 笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-bean%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">1.</span> <span class="nav-text">Spring bean生命周期</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Bean%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%8C%96"><span class="nav-number">1.0.1.</span> <span class="nav-text">Bean的实例化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="nav-number">1.0.2.</span> <span class="nav-text">依赖注入的方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%9C%E7%94%A8%E5%9F%9F"><span class="nav-number">1.0.3.</span> <span class="nav-text">作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bean%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="nav-number">1.0.4.</span> <span class="nav-text">bean的生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring%E5%AE%B9%E5%99%A8%E7%9A%84%E6%89%A9%E5%B1%95%E7%82%B9"><span class="nav-number">1.0.5.</span> <span class="nav-text">Spring容器的扩展点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%A8%E8%A7%A3%E7%9B%B8%E5%85%B3%E7%9A%84%E9%85%8D%E7%BD%AE"><span class="nav-number">1.0.6.</span> <span class="nav-text">注解相关的配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BeanNameAutoProxyCreator%E8%AF%A6%E8%A7%A3"><span class="nav-number">1.0.7.</span> <span class="nav-text">BeanNameAutoProxyCreator详解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#annotation-driven%E8%AF%A6%E8%A7%A3"><span class="nav-number">1.0.8.</span> <span class="nav-text">annotation-driven详解</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring%E4%BA%8B%E7%89%A9%E7%AE%A1%E7%90%86"><span class="nav-number">1.0.9.</span> <span class="nav-text">Spring事物管理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOP"><span class="nav-number">1.0.10.</span> <span class="nav-text">AOP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%9A%E7%9F%A5"><span class="nav-number">1.0.11.</span> <span class="nav-text">通知</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="wjainng"
+      src="/images/mountain.jpg">
+  <p class="site-author-name" itemprop="name">wjainng</p>
+  <div class="site-description" itemprop="description">学而不思则罔思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wjainng</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

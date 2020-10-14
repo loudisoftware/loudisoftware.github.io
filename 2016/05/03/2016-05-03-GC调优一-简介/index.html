@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="gc简介,摘选自java官方文档">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GC调优一[简介]">
+<meta property="og:url" content="http://example.com/2016/05/03/2016-05-03-GC%E8%B0%83%E4%BC%98%E4%B8%80-%E7%AE%80%E4%BB%8B/index.html">
+<meta property="og:site_name" content="WJAINNG">
+<meta property="og:description" content="gc简介,摘选自java官方文档">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/heapparameter.png">
+<meta property="article:published_time" content="2016-05-03T14:01:46.000Z">
+<meta property="article:modified_time" content="2020-09-16T15:15:44.749Z">
+<meta property="article:author" content="wjainng">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/heapparameter.png">
+
+<link rel="canonical" href="http://example.com/2016/05/03/2016-05-03-GC%E8%B0%83%E4%BC%98%E4%B8%80-%E7%AE%80%E4%BB%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>GC调优一[简介] | WJAINNG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">WJAINNG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2016/05/03/2016-05-03-GC%E8%B0%83%E4%BC%98%E4%B8%80-%E7%AE%80%E4%BB%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GC调优一[简介]
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-05-03 22:01:46" itemprop="dateCreated datePublished" datetime="2016-05-03T22:01:46+08:00">2016-05-03</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
+              </span>
+
+          
+            <div class="post-description">gc简介,摘选自java官方文档</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>很多应用都使用java平台，从小的applet到大型的web服务。Java HotSpot虚拟机提供多种垃圾回收器，不同的垃圾回收器满足不同的需求。</p>
+<p>java垃圾回收器是一个内存管理工具，通过下面的操作进行自动内存管理。</p>
+<ul>
+<li>在新生代中分配对象，并且把老年的对象提升到老年代。</li>
+<li>通过一个并发的标记过程查找到在老年代中存活的对象。java虚拟机在heap的使用内存达到一定程度时触发标记过程。参考CMS与G1垃圾回收器。</li>
+<li>通过并行复制压缩存活对象回收内存。参考Parallel与G1垃圾回收器。</li>
+</ul>
+<h2 id="GC默认选择"><a href="#GC默认选择" class="headerlink" title="GC默认选择"></a>GC默认选择</h2><p>在调优之前使用默认的配置。</p>
+<p>被称为服务器(server-class machine)的机器需要满足下面的条件。</p>
+<ol>
+<li>大于等于2个物理处理器。</li>
+<li>大于等于2GB的物理内存。</li>
+</ol>
+<p>在server-class machie中有下面的默认值。</p>
+<ul>
+<li>吞吐量垃圾回收器</li>
+<li>初始化堆大小为总物理内存的1/64，最大1G.(最少为2G/64为32M)</li>
+<li>最大堆大小为总物理内存的1/4，最大1G.(最少为2G/4为512M)</li>
+<li>使用jvm server模式</li>
+</ul>
+<p><em>默认server-class machie下都是使用jvm server模式，只有Windows操作系统不一样还是使用jvm client模式</em></p>
+<h3 id="基于行为的调整"><a href="#基于行为的调整" class="headerlink" title="基于行为的调整"></a>基于行为的调整</h3><p>对并发垃圾回收器来说，根据应用程序实现特定的行为提供两个调整参数，一个是最大暂停时间，一个是最大吞吐量。参考并行垃圾回收器(其他垃圾回收期无这两个参数)，这些参数也只是一个参考值不能保证每次都满足。</p>
+<h4 id="以最大暂停时间为目标"><a href="#以最大暂停时间为目标" class="headerlink" title="以最大暂停时间为目标"></a>以最大暂停时间为目标</h4><p>暂停时间是垃圾回收器停止应用程序(stops the application)进行内存回收的时间。最大暂停时间是指垃圾回收器暂停应用运行的最长时间。通过参数-XX:MaxGCPauseMillis=nnn设置，暂停时间nnn是对垃圾回收器的一种提示,垃圾回收器通过调整堆大小和其他参数试图满足暂停时间小于nnn。这样可能会导致垃圾回收更加频繁，导致应用的吞吐量下降。同时也不能保证每次暂停时间都满足要求。</p>
+<h4 id="以吞吐量为目标"><a href="#以吞吐量为目标" class="headerlink" title="以吞吐量为目标"></a>以吞吐量为目标</h4><p>吞吐量通过垃圾回收器占用的时间与非垃圾回收器占用的时间进行衡量。通过-XX:GCTimeRatio=<nnn>设置。例如-XX:GCTimeRatio=19设置目标值为1/20,即垃圾回收器占用的总时间的比例为5%。</p>
+<p>垃圾回收器的时间包括新生代和老年代的时间之和。如果不能达到设置的值，可能会加大堆的大小，以便减少垃圾回收器的执行次数。</p>
+<h4 id="以空间为目标"><a href="#以空间为目标" class="headerlink" title="以空间为目标"></a>以空间为目标</h4><p>如果之前的两个目标都满足，则垃圾回收器减少堆的大小直到之前的一个目标不能达到为止。</p>
+<h3 id="调整策略"><a href="#调整策略" class="headerlink" title="调整策略"></a>调整策略</h3><p>不要设置堆的大小，除非你需要比默认堆大小更大的值，设置吞吐量就能够满足应用的要求。</p>
+<h2 id="分代-Generations"><a href="#分代-Generations" class="headerlink" title="分代(Generations)"></a>分代(Generations)</h2><p>当从运行中的代码不能访问到对象时该对象被认为可以回收。</p>
+<p>绝大多数对象都是在年轻代分配，并且绝大多数在年轻代就被回收了(不会提升到老年代)，只有年轻代进行垃圾回收时称为minor collection。经过年轻代回收后还存活的对象会被提升到老年代，当老年代空间不足时会进行垃圾回收这时称为major collection。</p>
+<p>年轻代包含eden和survivor(有两个)两个区域，绝大多数对象在eden区进行初始化，survivor中有一个是空的，另外一个当做eden存活对象存放的目的地，两个survivor会在回收中互相替换角色。当对象存活到能够提升到老年代时才会从survivor中移动老年代。</p>
+<h3 id="测量"><a href="#测量" class="headerlink" title="测量"></a>测量</h3><p>可以通过一些参数输出gc的日志。</p>
+<ul>
+<li>-verbose:gc,在输出设备上显示虚拟机运行gc信息,可以通过-Xloggc:file把日志写入文件</li>
+<li>-XX:+PrintGCDetails,显示gc详细信息。</li>
+<li>-XX:+PrintGCTimeStamps.显示垃圾回收的时间，自JVM启动后计量。</li>
+<li>-XX:+PrintGCDateStamps,显示垃圾回收的时间信息</li>
+<li>-XX:+PrintHeapAtGC,在GC时输出堆栈详细信息.</li>
+</ul>
+<p>-verbose:gc时日志显示格式如下:</p>
+<blockquote>
+<p>[GC 325407K-&gt;83000K(776768K), 0.2300771 secs]<br>[GC 325816K-&gt;83372K(776768K), 0.2454258 secs]<br>[Full GC 267628K-&gt;83769K(776768K), 1.8479984 secs]</p>
+</blockquote>
+<p>上面的第一行日志说明一共发生了两次minor collections，一次major collection。箭头前后的数字表示垃圾回收前后占用的内存大小，括号中的数字表示不需要从操作系统获取额外的内存而具有的可以使用的空间大小(committed size of the heap)这个大小只包括一个survivor的大小，最后一个数字表示垃圾回收所用的时间。</p>
+<p>-XX:+PrintGCDetails显示的日志如下：</p>
+<blockquote>
+<p>[GC [DefNew: 64575K-&gt;959K(64576K), 0.0457646 secs] 196016K-&gt;133633K(261184K), 0.0459067 secs]</p>
+</blockquote>
+<p>第一个箭头前后的数字表示年轻代进行minor collection前后占用的内存大小，第一个时间表示年轻代垃圾回收占用的时间，第二个箭头前后的数字表示整个堆的内存在回收前后占用的大小，最后一个时间表示一些额外的时间加上年轻代回收的时间的总和。</p>
+<h2 id="分代大小设置"><a href="#分代大小设置" class="headerlink" title="分代大小设置"></a>分代大小设置</h2><p>堆的大小可以通过-Xmx进行设置，如果-Xms小于-Xmx则java虚拟机不会马上使用-Xmx对应的内存，堆的不同组成部分使用的内存可以增长到-Xmx的大小。</p>
+<p><img src="/images/heapparameter.png" alt="堆参数"></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MinHeapFreeRatio</td>
+<td>40</td>
+</tr>
+<tr>
+<td>MaxHeapFreeRatio</td>
+<td>70</td>
+</tr>
+<tr>
+<td>-Xms</td>
+<td>6656K</td>
+</tr>
+<tr>
+<td>-Xmx</td>
+<td>计算的值</td>
+</tr>
+</tbody></table>
+<p>当堆的剩余空间不足40%时，则堆的大小进行扩张直到剩余堆空间达到40%（不能超过-Xmx的值），当堆的剩余空间超过70%时进行堆空间缩小达到剩余空间为70%（不能少于-Xms的值）。</p>
+<blockquote>
+<p><em>如果-Xms与-Xmx的大小一致则不会进行堆空间大小的扩展与缩小。</em></p>
+</blockquote>
+<h3 id="年轻代大小设置"><a href="#年轻代大小设置" class="headerlink" title="年轻代大小设置"></a>年轻代大小设置</h3><p>当堆的大小确定时，年轻代的空间越大，则发生minor gc的频率越低， 同时年老代越少，会增加major gc的频率，同时与应用程序中对象的生命周期相关。</p>
+<p>年轻代的大小默认由NewRatio决定，例如：-XX:NewRatio=3.表示年轻代与年老代的比例为1:3.表示eden与survivor的大小为整个堆大小的1/4.</p>
+<p>-XX:NewSize和-XX:MaxNewSize可以设置年轻代的最小与最大值.如果NewSize与MaxNewSize一样大可以固定年轻代的大小.(与-Xmn的效果一样)</p>
+<h3 id="幸存区-Survivor-大小设置"><a href="#幸存区-Survivor-大小设置" class="headerlink" title="幸存区(Survivor)大小设置"></a>幸存区(Survivor)大小设置</h3><p>可以通过SurvivorRatio设置幸存区的大小,通常不会提升性能.例如-XX:SurvivorRatio=6设置eden与survivor的比例为6:1,每一个survivor的大小为eden的1/6,为整个年轻代的1/8(因为有两个survivor).</p>
+<p>如果survivor太小,则拷贝压缩的对象可能直接进入老年代而不需要达到年龄才会往老年代提升,如果survivor过大则浪费空间(有一个survivor的空间是浪费的).-XX:+PrintTenuringDistribution可以显示年轻代中对象的年龄,可以用来观察一个应用中对象的生命周期分布情况.</p>
+<p>survivor空间的默认值</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>server模式 JVM默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NewRatio</td>
+<td>2</td>
+</tr>
+<tr>
+<td>NewSize</td>
+<td>1310M</td>
+</tr>
+<tr>
+<td>MaxNewSize</td>
+<td>没有限制(表示不会受该参数的限制)</td>
+</tr>
+<tr>
+<td>SurvivorRatio</td>
+<td>8</td>
+</tr>
+</tbody></table>
+<p>首先找出可以分配给JVM的最大内存,不能超过物理内存的大小,会出现换页情况.<br>如果总的堆大小确定了,确保年老代的大小能保持应用程序任何时候需要使用的对象的大小,并加上一定的空闲(10到20%).</p>
+<p>当增加线程时增加年轻代的大小,因为内存分配是并行的.</p>
+<p>例如设置-Xms30m -Xmx30m 时,默认情况下老年代占20m,eden占8m,两个survivor各占1m.</p>
+<h2 id="可用的垃圾回收器类型"><a href="#可用的垃圾回收器类型" class="headerlink" title="可用的垃圾回收器类型"></a>可用的垃圾回收器类型</h2><ul>
+<li><strong>Serial collector</strong>:使用一个线程进行处理所有的垃圾回收工作.不存在线程之间的通信,对单处理器的机器最适合,或者在多处理器但是只需要比较少内存的应用例如100M,为一些特定的硬件或者操作系统环境下的默认收集器,可以使用-XX:+UseSerialGC进行指定.</li>
+<li><strong>Parallel collector</strong>:也被称为throughput collector,并行的进行minor collection.适用运行在多处理器硬件上需要中到大量内存的应用.与serial collector 一样parallel collector为某些硬件下的默认垃圾回收器,也可以通过-XX:+UseParallelGC进行指定.<ul>
+<li>并行压缩是parallel collector并行进行major collection的一种特性,如果没有并行压缩,major collections由一个线程执行,显著限制了可扩展性.如果设置了-XX:+USeParallelGC则默认开启并行压缩.关闭并行压缩可以通过设置-XX:-UseParallelOldGC禁止并行压缩.</li>
+</ul>
+</li>
+<li><strong>Mostly concurrent collector</strong>:适用于响应时间比吞吐量更重要的需要中岛大量内存的应用.可以通过-XX:+UseConcMarkSweepGC启用CMS回收器或者-XX:+UseG1GC启用G1回收器.</li>
+</ul>
+<h3 id="选择垃圾回收器"><a href="#选择垃圾回收器" class="headerlink" title="选择垃圾回收器"></a>选择垃圾回收器</h3><p>除非系统对暂停时间有要求,首先让VM自动选择一个垃圾回收器,如果需要,调整堆的大小提高性能,如果仍然不能满足需求,参考下面的指引选择一个垃圾回收器</p>
+<ul>
+<li>如果应用只需要较少的内存100M左右则通过设置-XX:+UseSerialGC使用serial collector</li>
+<li>如果应用运行在一个单处理器的硬件上并且对暂停时间(pause time)没有要求,则让VM选择垃圾回收器或者通过-XX:+UseSerialGC选择serial collector.</li>
+<li>如果吞吐量是第一优先级,并且对暂停时间没有要求或者暂停1秒或者更长都是可接受的,则让VM选择垃圾回收器或者通过-XX:+UseParallelGC选择parallel collector.</li>
+<li>如果响应时间比吞吐量更重要,暂停时间必须少于1秒,则通过-XX:+UseCon从MarkSweepGC或者-XX:+UseG1GC进行设置.</li>
+</ul>
+<blockquote>
+<p>上面的指引只是提供一个选择垃圾回收器的起点,因为性能跟堆的大小,应用程序对象的生命周期,处理器的个数与处理器的速度等相关.<br>如果建议的垃圾回收器满足不了需求,首先通过调整堆的大小看是否满足要求,如果仍然满足不了要求则选择其他垃圾回收器.通过concurrent collector缩小暂停时间,通过parallel collector在多处理器硬件上提高吞吐量.</p>
+</blockquote>
+<h2 id="并行回收器"><a href="#并行回收器" class="headerlink" title="并行回收器"></a>并行回收器</h2><p>parallel collector也被称为throughput collector与serial collector一样也是一个分代回收器,主要的区别在于,parallel使用多线程进行垃圾回收,默认情况下minor和major回收都是使用多个线程.</p>
+<p>如果机器具有N个线程,并且N&gt;8则默认使用N*5/8个线程进行垃圾回收,如果N&lt;8,则使用N个线程进行垃圾回收,使用的线程数也可以通过-XX:ParallelGCThreads=n进行设置.如果只有一个处理器,则parallel collector的性能还没有serial collector好,因为存在其他的开销例如同步,上下文切换.</p>
+<p>minor collecion 会把一些对象从年轻代提升到老年代,因为有多个线程执行minor gc,会为每一个线程在老年代分配一定的空间供提升对象使用,可能会导致碎片,降低垃圾回收线程数与提高老年代的大小可以降低碎片的影响.</p>
+<h3 id="分代"><a href="#分代" class="headerlink" title="分代"></a>分代</h3><p>Parallel Collector的分代信息如下<br>!(分代信息)[/images/parallel_generation.png]</p>
+<h3 id="Ergonomics"><a href="#Ergonomics" class="headerlink" title="Ergonomics"></a>Ergonomics</h3><p>Parallel Collector时在server-class机器下默认的垃圾回收器,可以设置暂停时间,吞吐量,内存大小等配置.</p>
+<ul>
+<li><strong>最大垃圾回收暂停时间</strong>:通过-XX:MaxGCPauseMillis=n进行设置,默认情况下没有最大暂停时间的目标,当设置了最大暂停时间时,堆栈的大小和其他与垃圾回收相关的参数会进行调整以满足暂停时间小于配置的时间.这些调整可能降低系统的吞吐量,并且这个目标不能总是满足.</li>
+<li><strong>吞吐量</strong>:通过垃圾回收的时间与系统时间的相对比进行衡量,通过-XX:GCTimeRatio=n进行设置,垃圾回收时间.默认值为99,也就是是垃圾回收占整个时间的1%.</li>
+<li><strong>空间</strong>:空间最大值通过-Xmxn进行设置,当其他目标满足后,垃圾回收器有一个隐藏的降低堆大小的优化.</li>
+</ul>
+<h3 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h3><ol>
+<li>最大垃圾回收暂停时间.</li>
+<li>吞吐量.</li>
+<li>空间.</li>
+</ol>
+<blockquote>
+<p>首先满足最大暂停时间,再满足吞吐量,只有在前面两个都满足的情况下,才会考虑最少化空间.</p>
+</blockquote>
+<h3 id="分代大小调整"><a href="#分代大小调整" class="headerlink" title="分代大小调整"></a>分代大小调整</h3><p>每一次垃圾回收时都会更新垃圾回收暂停平均统计数(显示的垃圾回收不会统计例如System.gc()).如根据这些统计数来决定是否需要更新分代的大小.</p>
+<p>增大和缩小是按不同的比例进行的,默认情况下增大时的比例为20%,缩小时的比例为5%.年轻代增加的参数通过-XX:YoungGenerationSizeIncrement=N设置,老年代增加的参数通过-XX:TenuredGenerationSizeIncrement=N进行设置.缩小的参数通过=XX:AdaptiveSizeDecrementSize=D进行设置,如果增大的比例为X,则减少的比例为X/D.</p>
+<p>如果最大暂停时间满足不了,则会缩小分代大小,如果年轻代和老年代都不能满足暂停时间则先从暂停时间最大的开始缩小.<br>如果吞吐量满足不了,则年轻代和老年代的大小都会增大,增大的比例与每个分代占用的垃圾回收时间有关,例如年轻代回收时间占整个垃圾回收时间的25%,并且年轻代增大的比例设置为20%,则年轻代会增大5%.</p>
+<h2 id="垃圾回收器详解"><a href="#垃圾回收器详解" class="headerlink" title="垃圾回收器详解"></a>垃圾回收器详解</h2><h3 id="CMS垃圾回收器"><a href="#CMS垃圾回收器" class="headerlink" title="CMS垃圾回收器"></a>CMS垃圾回收器</h3><p>CMS垃圾回收器设计为减小JVM的停顿时间.(在两个及以上的cpu上才有效果),通过**-XX:+UseConcMarkSweepGC**开启.</p>
+<h4 id="并行模式失败"><a href="#并行模式失败" class="headerlink" title="并行模式失败"></a>并行模式失败</h4><p>默认情况下CMS垃圾回收器使用一个或者多个线程与应用程序线程一起运行进行垃圾的回收,如果CMS垃圾回收器回收垃圾的速度达不到使用内存的速度,则应用程序线程会暂停,相当于并行垃圾回收失败.</p>
+<h4 id="过多的GC时间与OutOfMemoryError"><a href="#过多的GC时间与OutOfMemoryError" class="headerlink" title="过多的GC时间与OutOfMemoryError"></a>过多的GC时间与OutOfMemoryError</h4><p>如果98%的时间都是花在垃圾回收并且小于2%的内存被回收,则会抛出OutOfMemoryError.防止因为内存过少导致程序基本停止运行.可以通过**-XX:-UseGCOVerheadLimit**禁止.(并行垃圾回收的时间不统计在98%之内)</p>
+<h4 id="浮动垃圾-Floating-Garbage"><a href="#浮动垃圾-Floating-Garbage" class="headerlink" title="浮动垃圾(Floating Garbage)"></a>浮动垃圾(Floating Garbage)</h4><p>因为垃圾回收的同时,应用程序还在运行,因此存在一些对象在前面的标记阶段是可达的,但是在回收阶段变成不可达的,因此存在一些对象需要待下次垃圾回收时才会被回收.浮动垃圾的多少与垃圾回收的并行时长和对象引用的变化频率.</p>
+<h4 id="暂停阶段-Pauses"><a href="#暂停阶段-Pauses" class="headerlink" title="暂停阶段(Pauses)"></a>暂停阶段(Pauses)</h4><ol>
+<li>初始化标记:从roots(例如线程堆栈,静态对象等)或堆(例如年轻代)标记可以到达的对象.</li>
+<li>重新标记:在并发标记后,重新标记在并发标记时被应用程序线程更新引用的对象.</li>
+</ol>
+<h4 id="并行阶段-Concurrent-Phases"><a href="#并行阶段-Concurrent-Phases" class="headerlink" title="并行阶段(Concurrent Phases)"></a>并行阶段(Concurrent Phases)</h4><ol>
+<li>并行标记</li>
+<li>并行清理</li>
+</ol>
+<h4 id="开始并行回收"><a href="#开始并行回收" class="headerlink" title="开始并行回收"></a>开始并行回收</h4><p>因为在垃圾回收时应用程序还在运行,因此不能等内存用完了才进行垃圾回收,可以通过**-XX:CMSInitiatingOccupancyFraction=<N>**进行设计何时进行垃圾回收.(N可以是0到100的整数表示老年代的比例).</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/05/02/2016-05-02-Java-Finalization/" rel="prev" title="Java Finalization">
+      <i class="fa fa-chevron-left"></i> Java Finalization
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/10/21/2016-10-21-ShardedJedis%E5%88%86%E6%9E%90/" rel="next" title="ShardedJedis分析">
+      ShardedJedis分析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GC%E9%BB%98%E8%AE%A4%E9%80%89%E6%8B%A9"><span class="nav-number">2.</span> <span class="nav-text">GC默认选择</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E8%A1%8C%E4%B8%BA%E7%9A%84%E8%B0%83%E6%95%B4"><span class="nav-number">2.1.</span> <span class="nav-text">基于行为的调整</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%A5%E6%9C%80%E5%A4%A7%E6%9A%82%E5%81%9C%E6%97%B6%E9%97%B4%E4%B8%BA%E7%9B%AE%E6%A0%87"><span class="nav-number">2.1.1.</span> <span class="nav-text">以最大暂停时间为目标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%A5%E5%90%9E%E5%90%90%E9%87%8F%E4%B8%BA%E7%9B%AE%E6%A0%87"><span class="nav-number">2.1.2.</span> <span class="nav-text">以吞吐量为目标</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%A5%E7%A9%BA%E9%97%B4%E4%B8%BA%E7%9B%AE%E6%A0%87"><span class="nav-number">2.1.3.</span> <span class="nav-text">以空间为目标</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%83%E6%95%B4%E7%AD%96%E7%95%A5"><span class="nav-number">2.2.</span> <span class="nav-text">调整策略</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E4%BB%A3-Generations"><span class="nav-number">3.</span> <span class="nav-text">分代(Generations)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E9%87%8F"><span class="nav-number">3.1.</span> <span class="nav-text">测量</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E4%BB%A3%E5%A4%A7%E5%B0%8F%E8%AE%BE%E7%BD%AE"><span class="nav-number">4.</span> <span class="nav-text">分代大小设置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B4%E8%BD%BB%E4%BB%A3%E5%A4%A7%E5%B0%8F%E8%AE%BE%E7%BD%AE"><span class="nav-number">4.1.</span> <span class="nav-text">年轻代大小设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B8%E5%AD%98%E5%8C%BA-Survivor-%E5%A4%A7%E5%B0%8F%E8%AE%BE%E7%BD%AE"><span class="nav-number">4.2.</span> <span class="nav-text">幸存区(Survivor)大小设置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E7%94%A8%E7%9A%84%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8%E7%B1%BB%E5%9E%8B"><span class="nav-number">5.</span> <span class="nav-text">可用的垃圾回收器类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8"><span class="nav-number">5.1.</span> <span class="nav-text">选择垃圾回收器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E5%9B%9E%E6%94%B6%E5%99%A8"><span class="nav-number">6.</span> <span class="nav-text">并行回收器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E4%BB%A3"><span class="nav-number">6.1.</span> <span class="nav-text">分代</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ergonomics"><span class="nav-number">6.2.</span> <span class="nav-text">Ergonomics</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%85%88%E7%BA%A7"><span class="nav-number">6.3.</span> <span class="nav-text">优先级</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E4%BB%A3%E5%A4%A7%E5%B0%8F%E8%B0%83%E6%95%B4"><span class="nav-number">6.4.</span> <span class="nav-text">分代大小调整</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8%E8%AF%A6%E8%A7%A3"><span class="nav-number">7.</span> <span class="nav-text">垃圾回收器详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CMS%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8"><span class="nav-number">7.1.</span> <span class="nav-text">CMS垃圾回收器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E6%A8%A1%E5%BC%8F%E5%A4%B1%E8%B4%A5"><span class="nav-number">7.1.1.</span> <span class="nav-text">并行模式失败</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%87%E5%A4%9A%E7%9A%84GC%E6%97%B6%E9%97%B4%E4%B8%8EOutOfMemoryError"><span class="nav-number">7.1.2.</span> <span class="nav-text">过多的GC时间与OutOfMemoryError</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%AE%E5%8A%A8%E5%9E%83%E5%9C%BE-Floating-Garbage"><span class="nav-number">7.1.3.</span> <span class="nav-text">浮动垃圾(Floating Garbage)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9A%82%E5%81%9C%E9%98%B6%E6%AE%B5-Pauses"><span class="nav-number">7.1.4.</span> <span class="nav-text">暂停阶段(Pauses)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E9%98%B6%E6%AE%B5-Concurrent-Phases"><span class="nav-number">7.1.5.</span> <span class="nav-text">并行阶段(Concurrent Phases)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%80%E5%A7%8B%E5%B9%B6%E8%A1%8C%E5%9B%9E%E6%94%B6"><span class="nav-number">7.1.6.</span> <span class="nav-text">开始并行回收</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="wjainng"
+      src="/images/mountain.jpg">
+  <p class="site-author-name" itemprop="name">wjainng</p>
+  <div class="site-description" itemprop="description">学而不思则罔思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wjainng</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

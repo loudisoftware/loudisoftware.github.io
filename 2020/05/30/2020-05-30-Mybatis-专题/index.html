@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="xml文件解析的三种方式DOM方式：   把整个xml文件加载入内存并构建一个DOM树，基于这棵树形结构对各个节点进行操作。XML文档中的每个成分都是一个节点：有文档节点，元素节点，文本阶段，属性节点，注释节点等内容。 SAX方式：   基于事件模型的方式解析XML，不需要将整个XMl文档加入内存中，只需要将一部分加载到内存即可，由SAX解析器解析到某个类型节点时，触发注册在该类型节点上的回调函数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mybatis-专题">
+<meta property="og:url" content="http://example.com/2020/05/30/2020-05-30-Mybatis-%E4%B8%93%E9%A2%98/index.html">
+<meta property="og:site_name" content="WJAINNG">
+<meta property="og:description" content="xml文件解析的三种方式DOM方式：   把整个xml文件加载入内存并构建一个DOM树，基于这棵树形结构对各个节点进行操作。XML文档中的每个成分都是一个节点：有文档节点，元素节点，文本阶段，属性节点，注释节点等内容。 SAX方式：   基于事件模型的方式解析XML，不需要将整个XMl文档加入内存中，只需要将一部分加载到内存即可，由SAX解析器解析到某个类型节点时，触发注册在该类型节点上的回调函数">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/mybatis-cache.svg">
+<meta property="og:image" content="http://example.com/images/mybatis-execute.svg">
+<meta property="og:image" content="http://example.com/images/mybatis-dependency.svg">
+<meta property="og:image" content="http://example.com/images/mybatis-session.svg">
+<meta property="og:image" content="http://example.com/images/mybatis-insert.svg">
+<meta property="og:image" content="http://example.com/images/mybatis-query.svg">
+<meta property="og:image" content="http://example.com/images/mybatis-mapper-class.svg">
+<meta property="og:image" content="http://example.com/images/mybatis-mapper.svg">
+<meta property="article:published_time" content="2020-05-30T08:23:44.000Z">
+<meta property="article:modified_time" content="2020-09-16T15:15:44.783Z">
+<meta property="article:author" content="wjainng">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/mybatis-cache.svg">
+
+<link rel="canonical" href="http://example.com/2020/05/30/2020-05-30-Mybatis-%E4%B8%93%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Mybatis-专题 | WJAINNG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">WJAINNG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/05/30/2020-05-30-Mybatis-%E4%B8%93%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Mybatis-专题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-30 16:23:44" itemprop="dateCreated datePublished" datetime="2020-05-30T16:23:44+08:00">2020-05-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="xml文件解析的三种方式"><a href="#xml文件解析的三种方式" class="headerlink" title="xml文件解析的三种方式"></a>xml文件解析的三种方式</h4><h5 id="DOM方式："><a href="#DOM方式：" class="headerlink" title="DOM方式："></a>DOM方式：</h5><p>   把整个xml文件加载入内存并构建一个DOM树，基于这棵树形结构对各个节点进行操作。XML文档中的每个成分都是一个节点：有文档节点，元素节点，文本阶段，属性节点，注释节点等内容。</p>
+<h5 id="SAX方式："><a href="#SAX方式：" class="headerlink" title="SAX方式："></a>SAX方式：</h5><p>   基于事件模型的方式解析XML，不需要将整个XMl文档加入内存中，只需要将一部分加载到内存即可，由SAX解析器解析到某个类型节点时，触发注册在该类型节点上的回调函数，一般通过继承DefaultHandler重写相关的回调方法即可<code>startDocument,startElement,characters,endElement,endDocument方法</code>。又称为推的模式，通过SAX解析器解析到对应的类型主动调用回调方法。（被动接受）</p>
+<h5 id="StAX方式："><a href="#StAX方式：" class="headerlink" title="StAX方式："></a>StAX方式：</h5><p>   又称为拉的模式，解析器不会主动解析XMl由用户主动控制需要处理事件类型以及事件的调用。（主动接受）</p>
+<h4 id="mybatis-一级缓存"><a href="#mybatis-一级缓存" class="headerlink" title="mybatis 一级缓存"></a>mybatis 一级缓存</h4><ul>
+<li><p>开启或者关闭一级缓存</p>
+<p>mybatis默认开启session级缓存，可以通过配置<code>&lt;settings&gt;&lt;setting name=&quot;localCacheScope&quot; value=&quot;STATEMENT&quot;/&gt;&lt;/settings&gt;</code>关闭。（默认值为SESSION也就开启一级缓存）</p>
+</li>
+<li><p>缓存的cachekey</p>
+<p>缓存的cachekey由<code>statementId+offset+limit+sql+params</code>组成，当这五项一样时会认为是相同的sql，可以从缓存中获取数据。</p>
+</li>
+<li><p>缓存失效：</p>
+<p>当同一个sqlsession执行insert，update，delete，commit方法时会清除缓存。（如果获取sqlsession时指定autocomit为true则不需要手动执行commit则缓存不会清除）</p>
+<blockquote>
+<p>其他的sqlsession进行数据新增，修改或者删除时不会导致当前sqlsession的缓存失效，也就是一级缓存的范围是sqlsession级别，会导致因为缓存而读到之前的数据。</p>
+</blockquote>
+</li>
+<li><p>缓存的实现：</p>
+<p>mybatis的默认实现为PerpetualCache通过维护一个hashmap实现。同时还提供了很多装饰者模式实现的cache，底层用的都是PerpetualCache，只是增加了一些其他功能，例如FifoCache，LruCache，BlockingCache，SoftCache，WeakCache等。</p>
+</li>
+</ul>
+<h4 id="mybatis-二级缓存"><a href="#mybatis-二级缓存" class="headerlink" title="mybatis 二级缓存"></a>mybatis 二级缓存</h4><ul>
+<li><p>二级缓存的开启：<br>通过在mybatis-config.xml中配置<code>&lt;setting name=&quot;cacheEnabled&quot; value=&quot;true&quot;/&gt;</code>开启二级缓存，同时在映射文件中配置<code>&lt;cache/&gt;</code>或者<code>&lt;cache-ref/&gt;</code>配置cache的相关内容，可以通过cache-ref配置多个MappedStatement使用同一个命名空间的cache。</p>
+</li>
+<li><p>二级缓存的实现：<br>mybatis开启二级缓存后则会使用CachingExecutor进行sql语句的执行，会先从二级缓存对应namespace查找对应的值(MappedStatement中配置的cache)，再从一级缓存查找，最后才会查数据库。内部都是通过PerpetualCache存储数据，数据是存在本地，并且二级缓存需要在commit之后才会生效。当有表关联的数据并且属于不同的命名空间时存在读取脏数据的情况（在命名空间A中保存了a和b表关联的结果，如果在命名空间B中更新了b表的数据在命名空间A还是获取到之前的旧内容），可以通过cache-ref使用相同的命名空间，但是会导致缓存失效的情况变多。CachingExecutor通过装饰器模式内部包装了SimpleExecutor并增加了二级缓存的内容。</p>
+</li>
+</ul>
+<center><h6>二级缓存示意图</h6></center>
+
+<p><img src="/images/mybatis-cache.svg"></p>
+<h4 id="理解过程中梳理的图"><a href="#理解过程中梳理的图" class="headerlink" title="理解过程中梳理的图"></a>理解过程中梳理的图</h4><center><h6>SQL语句执行示意图</h6></center>
+
+<p><img src="/images/mybatis-execute.svg"></p>
+<blockquote>
+<p>在上图中的核心部分，也就是Executor，StatementHandler，ParameterHandler，ResultSetHandler的处理过程中都可以编写相关的拦截器进行处理。</p>
+</blockquote>
+<center><h6>类之间的依赖关系（只包含主要的关系）</h6></center>
+
+<p><img src="/images/mybatis-dependency.svg"></p>
+<blockquote>
+<p>ResultSetHandler中包含Executor是因为涉及到子查询和延迟加载的情况，需要重新通过Executor执行相关的命令。<br>  mybatis中的configuration是一个‘上帝类’从中可以获取Executor，StatementHandler，ParameterHandler，ResultSetHandler，并且在获取时都会调用interceptorChain.pluginAll调用拦截器进行处理。</p>
+</blockquote>
+<center><h6>open session对应的时序图</h6></center>
+
+<p><img src="/images/mybatis-session.svg" alt="mybatis open session"></p>
+<blockquote>
+<p>configuration中存有environment对应有数据源相关的内容（对应mybatis-config.xml中配置的内容），同时有默认的executeType，通过传入从environment获取的datasource从transactionfactory获取transaction，根据transaction和executeType从configuration获取Executor，再通过Executor，configuration，autoCommit创建一个SqlSession。（Transaction的创建使用了工厂方法模式，由对应的TransactionFactory创建对应的Transaction）</p>
+</blockquote>
+</br>
+<center><h6>执行insert时对应的时序图（以默认的实现为例）</h6></center>
+
+<p><img src="/images/mybatis-insert.svg" alt="mybatis insert"></p>
+<blockquote>
+<p>对SqlSession的操作最终都会委托到Executor的update方法，Executor的update方法会清除缓存，准备好StatementHandler, StatementHandler调用ParameterHandler处理传入的参数，执行update方法，调用ResultSetHandler处理返回结果。SqlSession的commit方法通过委托给Executor最终通过Transaction执行提交。</p>
+</blockquote>
+<center><h6>SQL语句查询序列图</h6></center>
+
+<p><img src="/images/mybatis-query.svg"></p>
+<blockquote>
+<p>上图描述的是二级和一级缓存都失败的执行情况</p>
+</blockquote>
+<center><h6>Mapper相关的类图</h6></center>
+
+<p><img src="/images/mybatis-mapper-class.svg"></p>
+<blockquote>
+<p>MapperRegistry注册了所有Mapper类对应的MapperProxyFactory,通过MapperProxyFactory获取MapperProxy，MapperProxy为Mapper的代理类，Mapper中的Method在MapperProxy有一个对应的MapppedMethod与之相对应，通过MappedMethod的execute方法实现Mapper中Method的实际数据库的调用。MappedMethod中最终通过SqlSession进行数据库相关方法的调用。SqlCommand封装了需要执行的sql的类型以及对应的MappedStatement对应的id（类名+方法名），MethodSignature的主要作用为通过ParamNameResolver对传进来的参数进行解析。</p>
+</blockquote>
+<center><h6>获取mapper的时序图</h6></center>
+
+<p><img src="/images/mybatis-mapper.svg"></p>
+<h4 id="其他内容"><a href="#其他内容" class="headerlink" title="其他内容"></a>其他内容</h4><ul>
+<li>#{}和\${}的区别<br>#{}会生成预编译的sql，会正确处理数据类型并且可以避免sql注入，\${}仅仅是文本替换。\${}一般用在order by，group by，limit等场景。</li>
+<li>like拼接%有两种方式，一种是在参数中直接拼接，另一种是通过CONCAT(‘%’,CONCAT(#{query.strategyName,jdbcType=VARCHAR},’%’))拼接。</li>
+</ul>
+<h4 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h4><p><small>[1] Mybatis技术内幕</small></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/24/2020-05-24-Maven-%E4%B8%93%E9%A2%98/" rel="prev" title="Maven-专题">
+      <i class="fa fa-chevron-left"></i> Maven-专题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/07/2020-06-07-%E7%BA%BF%E7%A8%8B-%E4%B8%93%E9%A2%98/" rel="next" title="线程-专题">
+      线程-专题 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#xml%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90%E7%9A%84%E4%B8%89%E7%A7%8D%E6%96%B9%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">xml文件解析的三种方式</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#DOM%E6%96%B9%E5%BC%8F%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">DOM方式：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#SAX%E6%96%B9%E5%BC%8F%EF%BC%9A"><span class="nav-number">1.2.</span> <span class="nav-text">SAX方式：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#StAX%E6%96%B9%E5%BC%8F%EF%BC%9A"><span class="nav-number">1.3.</span> <span class="nav-text">StAX方式：</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mybatis-%E4%B8%80%E7%BA%A7%E7%BC%93%E5%AD%98"><span class="nav-number">2.</span> <span class="nav-text">mybatis 一级缓存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mybatis-%E4%BA%8C%E7%BA%A7%E7%BC%93%E5%AD%98"><span class="nav-number">3.</span> <span class="nav-text">mybatis 二级缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link"><span class="nav-number">3.0.1.</span> <span class="nav-text">二级缓存示意图</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%90%86%E8%A7%A3%E8%BF%87%E7%A8%8B%E4%B8%AD%E6%A2%B3%E7%90%86%E7%9A%84%E5%9B%BE"><span class="nav-number">4.</span> <span class="nav-text">理解过程中梳理的图</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link"><span class="nav-number">4.0.1.</span> <span class="nav-text">SQL语句执行示意图</span></a></li><li class="nav-item nav-level-6"><a class="nav-link"><span class="nav-number">4.0.2.</span> <span class="nav-text">类之间的依赖关系（只包含主要的关系）</span></a></li><li class="nav-item nav-level-6"><a class="nav-link"><span class="nav-number">4.0.3.</span> <span class="nav-text">open session对应的时序图</span></a></li><li class="nav-item nav-level-6"><a class="nav-link"><span class="nav-number">4.0.4.</span> <span class="nav-text">执行insert时对应的时序图（以默认的实现为例）</span></a></li><li class="nav-item nav-level-6"><a class="nav-link"><span class="nav-number">4.0.5.</span> <span class="nav-text">SQL语句查询序列图</span></a></li><li class="nav-item nav-level-6"><a class="nav-link"><span class="nav-number">4.0.6.</span> <span class="nav-text">Mapper相关的类图</span></a></li><li class="nav-item nav-level-6"><a class="nav-link"><span class="nav-number">4.0.7.</span> <span class="nav-text">获取mapper的时序图</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E5%86%85%E5%AE%B9"><span class="nav-number">5.</span> <span class="nav-text">其他内容</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E6%96%87%E6%A1%A3"><span class="nav-number">6.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="wjainng"
+      src="/images/mountain.jpg">
+  <p class="site-author-name" itemprop="name">wjainng</p>
+  <div class="site-description" itemprop="description">学而不思则罔思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wjainng</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

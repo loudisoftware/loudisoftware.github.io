@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Lockjdk1.5之后除了synchronized关键字还可以使用lock来进行线程的同步。Lock给使用者更多的选择，并且能支持公平和非公平的锁，获取不到锁时允许中断，超时获取锁等。因为synchronized关键字是非显示的申明获取锁因此又称为隐式锁，synchronized可以用在代码块和方法上，当用在方法上时通过标记ACC_SYNCHRONIZED实现，用在代码块中通过monitoren">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JMM与锁">
+<meta property="og:url" content="http://example.com/2020/06/14/2020-06-14-JMM%E4%B8%8E%E9%94%81/index.html">
+<meta property="og:site_name" content="WJAINNG">
+<meta property="og:description" content="Lockjdk1.5之后除了synchronized关键字还可以使用lock来进行线程的同步。Lock给使用者更多的选择，并且能支持公平和非公平的锁，获取不到锁时允许中断，超时获取锁等。因为synchronized关键字是非显示的申明获取锁因此又称为隐式锁，synchronized可以用在代码块和方法上，当用在方法上时通过标记ACC_SYNCHRONIZED实现，用在代码块中通过monitoren">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/lock-aqs.svg">
+<meta property="og:image" content="http://example.com/images/thread-status.svg">
+<meta property="og:image" content="http://example.com/images/thread-pool-init.svg">
+<meta property="og:image" content="http://example.com/images/thread-pool-run.svg">
+<meta property="article:published_time" content="2020-06-14T13:42:36.000Z">
+<meta property="article:modified_time" content="2020-09-16T15:15:44.786Z">
+<meta property="article:author" content="wjainng">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/lock-aqs.svg">
+
+<link rel="canonical" href="http://example.com/2020/06/14/2020-06-14-JMM%E4%B8%8E%E9%94%81/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>JMM与锁 | WJAINNG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">WJAINNG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/06/14/2020-06-14-JMM%E4%B8%8E%E9%94%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JMM与锁
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-14 21:42:36" itemprop="dateCreated datePublished" datetime="2020-06-14T21:42:36+08:00">2020-06-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="Lock"><a href="#Lock" class="headerlink" title="Lock"></a>Lock</h3><p>jdk1.5之后除了synchronized关键字还可以使用lock来进行线程的同步。Lock给使用者更多的选择，并且能支持公平和非公平的锁，获取不到锁时允许中断，超时获取锁等。<br>因为synchronized关键字是非显示的申明获取锁因此又称为隐式锁，synchronized可以用在代码块和方法上，当用在方法上时通过标记ACC_SYNCHRONIZED实现，用在代码块中通过monitorenter和monitorexit实现（javap查看）。</p>
+<p>lock的使用方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">lock.lock();</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">//业务代码</span></span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">  lock.unlock();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><small>注意：<em>当使用tryLock时不能使用这种格式，会导致没有获取到锁也去释放锁，应该使用以下的方式</em></small></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(lock.tryLock()) &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">//业务代码</span></span><br><span class="line">  &#125;<span class="keyword">finally</span>&#123;</span><br><span class="line">    lock.unlock();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Lock方法说明"><a href="#Lock方法说明" class="headerlink" title="Lock方法说明"></a>Lock方法说明</h4><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>void lock()</td>
+<td>获取锁，获取不到则等待</td>
+</tr>
+<tr>
+<td>void lockInterruptibly()</td>
+<td>获取到锁则返回，否则加入等待队列。如果获取到锁或者被中断则返回</td>
+</tr>
+<tr>
+<td>boolean tryLock()</td>
+<td>如果获取锁成功则返回true，获取失败返回false，都会立即返回不会阻塞</td>
+</tr>
+<tr>
+<td>boolean tryLock(time, timeUnit)</td>
+<td>如果获取锁成功则返回true。否则会阻塞直到获取锁或者被中断或者阻塞时间到，只有获取到锁时返回true，其他情况返回false</td>
+</tr>
+<tr>
+<td>void unlock()</td>
+<td>释放锁</td>
+</tr>
+<tr>
+<td>Condition newCondition()</td>
+<td>返回一个绑定到该锁的一个新的条件对象</td>
+</tr>
+</tbody></table>
+<h4 id="同步器AQS-AbstractQueuedSynchronizer"><a href="#同步器AQS-AbstractQueuedSynchronizer" class="headerlink" title="同步器AQS(AbstractQueuedSynchronizer)"></a>同步器AQS(AbstractQueuedSynchronizer)</h4><p>同步器获取和修改状态的方法</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>getState()</td>
+<td>获取当前的同步状态</td>
+</tr>
+<tr>
+<td>setState(int newState)</td>
+<td>设置当前同步状态</td>
+</tr>
+<tr>
+<td>compareAndSetState(int expect, int update)</td>
+<td>使用CAS设置同步状态</td>
+</tr>
+</tbody></table>
+<p>同步器可以重写的方法</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>booelan tryAcquire(int arg)</td>
+<td>独占式获取同步状态,获取成功则返回true，否则返回false</td>
+</tr>
+<tr>
+<td>tryRelease(int arg)</td>
+<td>独占式释放同步状态，等待获取同步状态的线程有机会获取同步状态</td>
+</tr>
+<tr>
+<td>boolean tryAcquireShared(int arg)</td>
+<td>共享式获取同步状态，大于等于0表示获取成功，否则获取失败</td>
+</tr>
+<tr>
+<td>tryReleaseShared(int arg)</td>
+<td>共享式释放同步状态</td>
+</tr>
+<tr>
+<td>boolean isHeldExclusively()</td>
+<td>表示当前线程是否独占锁</td>
+</tr>
+</tbody></table>
+<p>AQS内部结构：<br><img src="/images/lock-aqs.svg"></p>
+<blockquote>
+<p>Conditon是锁的内部类，必须获得锁才能调用await和signal方法，condition从await返回可以当做两步理解，第一从等待队列移到同步队列，第二成为同步队列的首节点(获得锁)。</p>
+</blockquote>
+<h4 id="线程池"><a href="#线程池" class="headerlink" title="线程池"></a>线程池</h4><h5 id="线程的实现方式"><a href="#线程的实现方式" class="headerlink" title="线程的实现方式"></a>线程的实现方式</h5><ol>
+<li>继承Thread，通过start()启动线程会执行线程的run方法。</li>
+<li>实现Runnable，然后把runnable当做线程的参数，通过start()启动线程后会执行runnable的run方法[线程的默认实现run方法为调用target的run方法]。</li>
+<li>针对有返回值的情况下实现Callable，然后构造一个FutureTask，把FutrueTask当做线程的参数传入线程，通过start()启动线程后最终会调用到Callable的call()方法。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Callable callable = <span class="keyword">new</span> Callable(()-&gt;<span class="string">&quot;Say Hello&quot;</span>);</span><br><span class="line">FutureTask futureTask = <span class="keyword">new</span> FutureTask(callable);</span><br><span class="line"><span class="keyword">new</span> Thread(futureTask).start();</span><br><span class="line">futureTask.get();<span class="comment">//会返回“Say Hello&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><small>FutureTask支持取消任务，如果任务能够响应中断还能取消正在运行的任务。submit最终也是调用execute方法，只是传递给execute的为封装为FutureTask的对象</small></p>
+<p>java线程的状态及转换：<br><img src="/images/thread-status.svg"></p>
+<h5 id="线程池的初始化"><a href="#线程池的初始化" class="headerlink" title="线程池的初始化"></a>线程池的初始化</h5><p>线程池初始化时可以指定核心线程数，最大线程数，线程工厂，阻塞队列，空闲时间，空闲时间参数，拒绝策略。（核心线程也可以通过设置allowCoreThreadTimeOut达到空闲时间进行移除）往线程池增加任务时的流程如下图：</p>
+<p><img src="/images/thread-pool-init.svg"></p>
+<p>工作线程启动后会调用runWorker方法，在循环中不断从队列中获取任务并执行任务。流程图如下：</p>
+<p><img src="/images/thread-pool-run.svg"></p>
+<p><small> 通过在获取task时进行工作线程的空闲时间处理，如果超过核心线程数，或者允许核心线程数移除则在获取任务时会设置最长的阻塞时间，如果这段时间还是获取不到任务则返回null，则会导致线程的runWorker方法执行完毕，最终会执行清除线程的方法。</small></p>
+<blockquote>
+<p>线程池执行的任务一种为runnable，一种为callable，实际是通过工作线程调用runnable和callable接口的方法。工作线程由线程池进行初始化，通过在工作线程池的run方法中执行相应的run和call方法。</p>
+</blockquote>
+<h5 id="线程池的停止"><a href="#线程池的停止" class="headerlink" title="线程池的停止"></a>线程池的停止</h5><p>和线程池停止相关的方法</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>shuntDown</td>
+<td>停止线程池，不再接受新的任务（放入新的任务会执行拒绝策略），已经在队列中的任务还是会执行。</td>
+</tr>
+<tr>
+<td>shuntDownNow</td>
+<td>停止线程池，不再接受新的任务（放入新的任务会执行拒绝策略），通过中断处理正在执行的任务。返回在队列中的任务列表。</td>
+</tr>
+<tr>
+<td>awaitTermination</td>
+<td>等待线程池停止，返回true表示任务都执行完成，结合shuntDown使用。</td>
+</tr>
+</tbody></table>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/09/2020-06-09-PPT-%E4%B8%93%E9%A2%98/" rel="prev" title="PPT-专题">
+      <i class="fa fa-chevron-left"></i> PPT-专题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/07/25/2020-07-25-myql-%E5%9F%BA%E7%A1%80/" rel="next" title="myql-基础">
+      myql-基础 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Lock"><span class="nav-number">1.</span> <span class="nav-text">Lock</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Lock%E6%96%B9%E6%B3%95%E8%AF%B4%E6%98%8E"><span class="nav-number">1.1.</span> <span class="nav-text">Lock方法说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%8C%E6%AD%A5%E5%99%A8AQS-AbstractQueuedSynchronizer"><span class="nav-number">1.2.</span> <span class="nav-text">同步器AQS(AbstractQueuedSynchronizer)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="nav-number">1.3.</span> <span class="nav-text">线程池</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="nav-number">1.3.1.</span> <span class="nav-text">线程的实现方式</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">1.3.2.</span> <span class="nav-text">线程池的初始化</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E5%81%9C%E6%AD%A2"><span class="nav-number">1.3.3.</span> <span class="nav-text">线程池的停止</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="wjainng"
+      src="/images/mountain.jpg">
+  <p class="site-author-name" itemprop="name">wjainng</p>
+  <div class="site-description" itemprop="description">学而不思则罔思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wjainng</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

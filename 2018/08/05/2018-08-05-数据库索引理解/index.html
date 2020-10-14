@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="基本概念 块&#x2F;页:不管是索引还是表都是按页的方式存储,一般一页的大小为4KB或者8KB,不同的RDBMS会有不同的设置. 索引行大小:因为一个页的大小为4K为了在一页中存储更多的索引条数,并且一个索引行必须能在一个页中存储,不能跨页,并且为了节省空间和更好的存储索引的个数,一般都会对索引的行大小有限制.(如果索引行大小为1K则一个页只能存储一行索引,导致浪费空间和索引页的大小变大) 表行大小:一般">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库索引理解">
+<meta property="og:url" content="http://example.com/2018/08/05/2018-08-05-%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B4%A2%E5%BC%95%E7%90%86%E8%A7%A3/index.html">
+<meta property="og:site_name" content="WJAINNG">
+<meta property="og:description" content="基本概念 块&#x2F;页:不管是索引还是表都是按页的方式存储,一般一页的大小为4KB或者8KB,不同的RDBMS会有不同的设置. 索引行大小:因为一个页的大小为4K为了在一页中存储更多的索引条数,并且一个索引行必须能在一个页中存储,不能跨页,并且为了节省空间和更好的存储索引的个数,一般都会对索引的行大小有限制.(如果索引行大小为1K则一个页只能存储一行索引,导致浪费空间和索引页的大小变大) 表行大小:一般">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-08-05T13:31:38.000Z">
+<meta property="article:modified_time" content="2020-09-16T15:15:44.753Z">
+<meta property="article:author" content="wjainng">
+<meta property="article:tag" content="mysql">
+<meta property="article:tag" content="index">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2018/08/05/2018-08-05-%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B4%A2%E5%BC%95%E7%90%86%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据库索引理解 | WJAINNG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">WJAINNG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2018/08/05/2018-08-05-%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B4%A2%E5%BC%95%E7%90%86%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库索引理解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-08-05 21:31:38" itemprop="dateCreated datePublished" datetime="2018-08-05T21:31:38+08:00">2018-08-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><ol>
+<li>块/页:不管是索引还是表都是按页的方式存储,一般一页的大小为4KB或者8KB,不同的RDBMS会有不同的设置.</li>
+<li>索引行大小:因为一个页的大小为4K为了在一页中存储更多的索引条数,并且一个索引行必须能在一个页中存储,不能跨页,并且为了节省空间和更好的存储索引的个数,一般都会对索引的行大小有限制.(如果索引行大小为1K则一个页只能存储一行索引,导致浪费空间和索引页的大小变大)</li>
+<li>表行大小:一般情况下表的一行数据不跨页存储,减少IO.对BLOB等大字段需要单独存储.</li>
+</ol>
+<h2 id="SQL处理过程"><a href="#SQL处理过程" class="headerlink" title="SQL处理过程"></a>SQL处理过程</h2><ol>
+<li>谓词<br> where子句由一个或者多个谓词(搜索参数)组成.谓词表达式是索引设计的主要入手点.如果索引能够满足所有谓词表达式,优化器可能建立一个高效的访问路径.</li>
+<li>优化器及访问路径<br> SQL语句被真正执行之前,优化器必须首先确定如何访问数据.包括:应该使用哪一个索引,索引的访问方式等.</li>
+<li>索引片及匹配列<br> 访问路径的成本很大程度上取决于索引片的厚度(谓词表达式确定的值域范围),索引片越厚需要顺序扫描的索引页就越多,需要处理的索引记录也就越多,同时还有因此而增加的对表的同步读操作.</li>
+<li>索引过滤及过滤列<br> 索引列不一定会参与索引片的定义,但这些列仍然能够减少回表进行同步读的次数,这些列成为过滤列.(需要注意索引的顺序)<br> 基本规则如下:<br> 1.1 where子句中如果存在一个简单的谓词例如相等.如果有则该列为匹配列,如果没有则后面的索引列都是非匹配列.<br> 1.2 如果谓词为一个范围谓词,那么剩余的索引都是非匹配列.<br> 1.3 最后一个匹配列之后的索引列如果有足够简单的谓词与其对应则为过滤列.</li>
+<li>过滤因子<br> 描述了谓词的选择性,满足谓词的记录行数占记录行的比例,依赖于列值的分布情况.(组合谓词的过滤因子可以认为是各自过滤因子的相乘)</li>
+</ol>
+<h2 id="合适的索引"><a href="#合适的索引" class="headerlink" title="合适的索引"></a>合适的索引</h2><blockquote>
+<p>假设:<br>随机读:10ms,顺序读:0.01ms,FETCH:0.1ms</p>
+</blockquote>
+<h3 id="三星索引"><a href="#三星索引" class="headerlink" title="三星索引"></a>三星索引</h3><ol>
+<li>如果与一个查询相关的索引行是相邻的,或者相距足够近的可以标记为第一颗星.最小化了必须扫描的索引片的宽度.</li>
+<li>如果索引行的顺序与查询语句的需求一致,可以标记为第二颗星.避免了排序.</li>
+<li>如果索引行包含查询语句中的所有列,可以标记为第三颗星.避免了表的访问,仅访问索引即可.</li>
+</ol>
+<blockquote>
+<p>宽索引:是指一个至少满足第三颗星的索引.该索引包含了select语句所涉及的所有列,使得查询只需访问索引而无须访问表.</p>
+</blockquote>
+<p><strong>有时并不能总满足三星索引的要求,例如同时存在范围查找和排序时,会造成第一颗星和第二颗星的冲突,这时需要进行权衡,选择第二颗星避免排序,选择第一颗星拥有最窄的索引片.(一般排序的速度比较快,可以只在只需要返回少数数据时选择第二颗星)</strong></p>
+<p><em>另外建立组合索引时如果顺序不重要可以把变化大的字段放在索引的最后一列,减少索引维护时页的分裂</em></p>
+<h2 id="索引设计的依据"><a href="#索引设计的依据" class="headerlink" title="索引设计的依据"></a>索引设计的依据</h2><h3 id="QB-基本问题法"><a href="#QB-基本问题法" class="headerlink" title="QB(基本问题法)"></a>QB(基本问题法)</h3><p>已存在或者计划中的索引是否包含了where子句所有的列(半宽索引)</p>
+<h3 id="QUBE-快速上限估算法"><a href="#QUBE-快速上限估算法" class="headerlink" title="QUBE(快速上限估算法)"></a>QUBE(快速上限估算法)</h3><p>通常由以下两个公式确定</p>
+<ol>
+<li>比较值:LRT=TR * 10ms + TS * 0.01ms</li>
+<li>绝对值:LRT=TR * 10ms + TS * 0.01ms + F * 0.1ms</li>
+</ol>
+<p><em>LRT=本地响应时间</em><br><em>TR=随机访问的数量</em><br><em>TS=顺序访问的数量</em><br><em>F=有效FETCH的数量</em></p>
+<h2 id="影响因素"><a href="#影响因素" class="headerlink" title="影响因素"></a>影响因素</h2><h3 id="困难谓词"><a href="#困难谓词" class="headerlink" title="困难谓词"></a>困难谓词</h3><blockquote>
+<p>如果一个谓词字段不能参与定义索引片,它无法成为一个匹配谓词,这样对优化器而言太困难了.用户友好型的数据库会提供一个对自己的优化器而言困难谓词列表.(不可索引化)</p>
+</blockquote>
+<p>除非访问路径是一个多索引扫描,否则只有布尔谓词可以参与定义索引片.</p>
+<p>IN谓词可能通过优化变成多个索引片扫描.(oracle的skip range scan)</p>
+<p>过滤因子隐患:在以下三个条件同时满足时可能会产生过滤因子隐患</p>
+<ol>
+<li>访问路径中没有排序</li>
+<li>第一屏幕结果一建立就回应.</li>
+<li>不是所有的谓词字段都参与定义待扫描的索引片.(不是所有字段都为匹配字段)</li>
+</ol>
+<h2 id="表连接"><a href="#表连接" class="headerlink" title="表连接"></a>表连接</h2><ol>
+<li>嵌套循环<br> 选择可以通过谓词过滤后剩下小部分数据的表当做外层表,并且内层表最好有对应的索引.</li>
+<li>合并/hash操作<br> 通过合并扫描出需要连接的表的数据后进行排序或者hash进行连接.</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mysql/" rel="tag"># mysql</a>
+              <a href="/tags/index/" rel="tag"># index</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/05/01/2017-05-01-%E9%9D%9E%E6%9A%B4%E5%8A%9B%E6%B2%9F%E9%80%9A-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="prev" title="非暴力沟通[读书笔记]">
+      <i class="fa fa-chevron-left"></i> 非暴力沟通[读书笔记]
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/12/08/2018-12-08-%E8%BD%AF%E4%BB%B6%E9%9C%80%E6%B1%82%E7%AC%94%E8%AE%B0/" rel="next" title="软件需求笔记">
+      软件需求笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL%E5%A4%84%E7%90%86%E8%BF%87%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">SQL处理过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%88%E9%80%82%E7%9A%84%E7%B4%A2%E5%BC%95"><span class="nav-number">3.</span> <span class="nav-text">合适的索引</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E6%98%9F%E7%B4%A2%E5%BC%95"><span class="nav-number">3.1.</span> <span class="nav-text">三星索引</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95%E8%AE%BE%E8%AE%A1%E7%9A%84%E4%BE%9D%E6%8D%AE"><span class="nav-number">4.</span> <span class="nav-text">索引设计的依据</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#QB-%E5%9F%BA%E6%9C%AC%E9%97%AE%E9%A2%98%E6%B3%95"><span class="nav-number">4.1.</span> <span class="nav-text">QB(基本问题法)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#QUBE-%E5%BF%AB%E9%80%9F%E4%B8%8A%E9%99%90%E4%BC%B0%E7%AE%97%E6%B3%95"><span class="nav-number">4.2.</span> <span class="nav-text">QUBE(快速上限估算法)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BD%B1%E5%93%8D%E5%9B%A0%E7%B4%A0"><span class="nav-number">5.</span> <span class="nav-text">影响因素</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%B0%E9%9A%BE%E8%B0%93%E8%AF%8D"><span class="nav-number">5.1.</span> <span class="nav-text">困难谓词</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E8%BF%9E%E6%8E%A5"><span class="nav-number">6.</span> <span class="nav-text">表连接</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="wjainng"
+      src="/images/mountain.jpg">
+  <p class="site-author-name" itemprop="name">wjainng</p>
+  <div class="site-description" itemprop="description">学而不思则罔思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wjainng</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

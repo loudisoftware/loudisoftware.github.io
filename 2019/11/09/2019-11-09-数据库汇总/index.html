@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="针对最近看的资料和个人理解，把相关的知识整理如下。 三范式第一范式表中的列具有原子性，不能再进行拆分。例如通讯录表如果一个人既有公司电话又有家庭电话应该定义两个字段进行区分，而不是定义一个字段。 姓名*家庭号码**公司电话号码*   第二范式 必须满足第一范式。 每一个表必须有一个主键。 非主键字段必须全部依赖主键，不能只部分依赖主键。假如有以下的订单详情信息：  订单ID商品ID商品名称购买数量">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库汇总">
+<meta property="og:url" content="http://example.com/2019/11/09/2019-11-09-%E6%95%B0%E6%8D%AE%E5%BA%93%E6%B1%87%E6%80%BB/index.html">
+<meta property="og:site_name" content="WJAINNG">
+<meta property="og:description" content="针对最近看的资料和个人理解，把相关的知识整理如下。 三范式第一范式表中的列具有原子性，不能再进行拆分。例如通讯录表如果一个人既有公司电话又有家庭电话应该定义两个字段进行区分，而不是定义一个字段。 姓名*家庭号码**公司电话号码*   第二范式 必须满足第一范式。 每一个表必须有一个主键。 非主键字段必须全部依赖主键，不能只部分依赖主键。假如有以下的订单详情信息：  订单ID商品ID商品名称购买数量">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-11-09T11:54:08.000Z">
+<meta property="article:modified_time" content="2020-09-16T15:15:44.772Z">
+<meta property="article:author" content="wjainng">
+<meta property="article:tag" content="mysql">
+<meta property="article:tag" content="index">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2019/11/09/2019-11-09-%E6%95%B0%E6%8D%AE%E5%BA%93%E6%B1%87%E6%80%BB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>数据库汇总 | WJAINNG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">WJAINNG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/11/09/2019-11-09-%E6%95%B0%E6%8D%AE%E5%BA%93%E6%B1%87%E6%80%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库汇总
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-11-09 19:54:08" itemprop="dateCreated datePublished" datetime="2019-11-09T19:54:08+08:00">2019-11-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>针对最近看的资料和个人理解，把相关的知识整理如下。</p>
+<h2 id="三范式"><a href="#三范式" class="headerlink" title="三范式"></a>三范式</h2><h3 id="第一范式"><a href="#第一范式" class="headerlink" title="第一范式"></a>第一范式</h3><p>表中的列具有原子性，不能再进行拆分。例如通讯录表如果一个人既有公司电话又有家庭电话应该定义两个字段进行区分，而不是定义一个字段。</p>
+<table><tr><td>姓名</td><td>*家庭号码*</td><td>*公司电话号码*</td></tr></table>
+
+
+<h3 id="第二范式"><a href="#第二范式" class="headerlink" title="第二范式"></a>第二范式</h3><ul>
+<li>必须满足第一范式。</li>
+<li>每一个表必须有一个主键。</li>
+<li>非主键字段必须全部依赖主键，不能只部分依赖主键。<br>假如有以下的订单详情信息：</li>
+</ul>
+<table><tr><td>订单ID</td><td>商品ID</td><td>商品名称</td><td>购买数量</td></tr></table>
+
+<p>显然订单<strong>ID+商品ID</strong>为主键，其中购买数量字段依赖于主键，但是商品名称字段只依赖于商品ID字段，因此不满足第二范式。</p>
+<h3 id="第三范式"><a href="#第三范式" class="headerlink" title="第三范式"></a>第三范式</h3><ul>
+<li>必须满足第二范式。</li>
+<li>不存在传递依赖，也就是不存在非主字段A依赖于非主字段B，非主字段B依赖于主键字段。</li>
+</ul>
+<p>假如有以下的订单汇总信息：</p>
+<table><tr><td>订单ID</td><td>订单总金额</td><td>用户ID</td><td>用户名称</td></tr></table>
+
+<p>显然<strong>订单ID</strong>可以作为主键，表示一个订单的汇总信息，用户ID依赖于订单ID，用户名称依赖于用户名称，不满足第三范式。（把用户名称从表中移除就满足要求）</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>除了以上三种范式，还有BCNF范式，第四范式，第五范式。越往后数据库的冗余越小。冗余越少越容易进行更新，并且保证数据的一致性。冗余越多越方便查询，不需要进行表的关联，实际应用中应该根据实际情况进行处理，如果一个字段的更新场景不多，适当的冗余也是可以的，尤其是不允许更新但是查询多的字段。</p>
+<h2 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h2><ul>
+<li><p>A: 原子性，事务中的操作相当于一个原子操作要么全部成功要么全部回滚，不存在一部分操作成功的情况。（mysql中通过redo日志保证）。</p>
+</li>
+<li><p>C：一致性，事务把数据库从一个一致的情况转移到另外一个一致的情况，事务前后数据库属于一致的情况，例如不会因为事务导致数据库的唯一约束被打破。</p>
+</li>
+<li><p>I：隔离性，多个事务之间的操作不相互影响，一个事物的操作对另一个事物不可见。（与具体的隔离级别有关系）。</p>
+</li>
+<li><p>D：持久性，事物一旦提交即是持久的，不会因为数据库的宕机而导致数据丢失。（如果是对应的磁盘有问题，还是会导致数据丢失，属于高可用的范畴）</p>
+</li>
+</ul>
+<h3 id="隔离级别"><a href="#隔离级别" class="headerlink" title="隔离级别"></a>隔离级别</h3><ul>
+<li><p>读未提交：事务2可以读到事务1没有提交的数据，也就是会出现脏读现象。一般不会设置为该级别。</p>
+</li>
+<li><p>读可提交：事务2可以读到事务1已经提交的数据，但是会出现事务2的同一个语句在事务1提交前后的结果不一致，出现不可重复读的现象[会出现同一条数据前后两次获取的内容不一致]。（oracle的默认级别）</p>
+</li>
+<li><p>可重复读：事物2的同一个语句在事物的整个过程中读到的内容是一致的，但是会出现幻读的情况[主要是针对数据有新增或删除的情况，记录的条数有变化]。（mysql默认级别）</p>
+</li>
+<li><p>串行化：事务只能串行执行，一次只允许一个事务。</p>
+</li>
+</ul>
+<p><sub>mysql默认为RR的原因是避免在statement复制时的不一致性。（binlog中是按事物提交时间记录日志，如果第二个事务修改的数据导致第一个事务更新的数据发生变化就会有问题）。<em>mysql的可重复读，通过间隙锁不会出现幻读的情况，具体见后续的内容</em></sub></p>
+<h2 id="mysql数据库相关内容"><a href="#mysql数据库相关内容" class="headerlink" title="mysql数据库相关内容"></a>mysql数据库相关内容</h2><p>以下内容是针对mysql数据库的一些笔记，主要是涉及到innodb引擎。</p>
+<h3 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h3><p>mysql的innodb引擎中表是索引组织表。（聚簇索引）</p>
+<ul>
+<li><p>主键索引中，非叶子节点存放的是主键的信息，叶子节点存的是对应的数据信息。（如果没有主键，则默认使用第一个定义的非空的唯一索引，如果不满足条件则会数据库内部生成一个字段当做索引）</p>
+</li>
+<li><p>辅助索引中，非叶子节点存放的是索引的信息，叶子节点存放对应索引的主键值。<br>（组合索引中非叶子节点存放的是组合索引对应的多个字段的信息）</p>
+</li>
+</ul>
+<p><sub>1. 索引一般是3层左右，通过主键查询数据时最多需要3次磁盘IO，如果是通过辅助索引则需要6次磁盘IO，先通过辅助索引找到对应的主键，再通过主键查询获取数据。（IOPS按60算，通过主键查找大概需要50ms，辅助索引则需要100ms)</sub></p>
+<p><sub>2. innodb中默认一个页是16K，如果一条数据为1k则叶子节点的一页可以存16条数据，如果主键为long类型占8字节，加上一个6字节的指针，则一个非叶子节点可以存16K/14=1170个主键和对应的指针，则一个2层的索引可以存1170*16=18720条数据。一个三层的索引可以存2000万的数据。</sub></p>
+<h3 id="锁"><a href="#锁" class="headerlink" title="锁"></a>锁</h3><p>按锁定的对象可以分为表锁和行锁。<br>其中表锁有:IS,IX,S,X,AI锁。<br>行锁有:S,X。</p>
+<h4 id="表锁"><a href="#表锁" class="headerlink" title="表锁"></a>表锁</h4><p>表锁的类型如下：</p>
+<ul>
+<li><p>IS（LOCK_IS）：为意向共享锁，事务在获得记录的S锁时，必须在表上获取IS锁或者在表上加比IS锁更强的锁。</p>
+</li>
+<li><p>IX(LOCK_IX)：为意向排他锁，事务在获得记录的X锁时，必须在表上获得IX锁或者在表上加比IX锁更强的锁。</p>
+</li>
+<li><p>S(LOCK_S)：表共享锁。</p>
+<ol>
+<li>当会话为非自动提交时，执行<strong>lock table <em>tablename</em> read</strong>时加共享锁。</li>
+<li>在DDL的第一个阶段，如果DDL不能在线执行，则对表加共享锁。</li>
+</ol>
+</li>
+<li><p>X(LOCK_X)：表排它锁。</p>
+<ol>
+<li>当会话为非自动提交时，执行<strong>lock table <em>tablename</em> write</strong>时加排它锁。</li>
+<li>在DDL的最后一个阶段，对表加排它锁，确保没有别的事物持有表级锁。</li>
+<li>对某个表空间执行discard或者import操作时加排它锁。</li>
+</ol>
+</li>
+<li><p>AI(LOCK_AUTO_INC)：自增长锁，锁的范围为SQL级别，SQL结束后即释放。(违反2PC原则),自增锁有以下三种模式。</p>
+<ol>
+<li>AUTOINC_OLD_STYLE_LOCKING：在分配前加AUTO_INC锁，sql结束时释放。</li>
+<li>AUTOINC_NEW_STYLE_LOCKING：默认模式，在普通的insert或replace时，通过加锁并预留本次需要的增长值后释放锁。否则退化到LOCK_AUTO_INC锁。（会浪费一些自增加ID，例如SQL中本身提供了ID值的情况）</li>
+<li>AUTOINC_NO_LOCKING：分配时加mutex，不会退化到传统模式，但是不能保证statement方式下的复制安全性。</li>
+</ol>
+</li>
+</ul>
+<p>锁的兼容性如下：</p>
+<table>
+<thead>
+<tr>
+<th>&nbsp;</th>
+<th>IS</th>
+<th>IX</th>
+<th>S</th>
+<th>X</th>
+<th>AI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>IS</strong></td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td><strong>IX</strong></td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td><strong>S</strong></td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+<tr>
+<td><strong>X</strong></td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+<tr>
+<td><strong>AI</strong></td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+</tbody></table>
+<ul>
+<li>GAP类型的锁申请（非插入意向锁），不需等待任何锁，GAP锁本身互不冲突。</li>
+<li>任何锁请求都不需要等待插入意向锁。</li>
+</ul>
+<p><sub>注:DDL语句可以认为分为<em>准备，执行，提交</em>三个阶段。</sub></p>
+<sub>
+说明:
+Tx1: INSERT INTO t1 (c2) SELECT 1000 rows from another table ...
+Tx2: INSERT INTO t1 (c2) VALUES ('xxx');
+如果Tx2在Tx1中间执行，对通过statement进行binlog记录时会导致主从不一致，不能保证id字段是一样的。
+</sub>  
+
+<h4 id="行锁"><a href="#行锁" class="headerlink" title="行锁"></a>行锁</h4><p>锁的类型：</p>
+<ol>
+<li>LOCK_REC_NOT_GAP（记录锁）：只锁住对应的记录，不会锁记录之前的GAP。（RC隔离级别和唯一索引的RR级别一般加该锁）</li>
+<li>LOCK_GAP（间隙锁）：只锁住一段空范围，通常是两个索引记录之间，或者是第一条记录之前，或者最后一条记录之后。（一般在RR隔离级别下会用到GAP锁）</li>
+<li>LOCK_ORDINARY（NEXT_KEY_LOCK）：锁住记录和记录之前的间隙。</li>
+</ol>
+<p>锁的模式分为S锁和X锁：<br>S锁：共享锁，在以下场景中会增加S锁。</p>
+<ul>
+<li>在非自动提交并且隔离级别为serializable时，普通的select会加S锁。</li>
+<li>select * from tablename for share model时会加S锁。<ul>
+<li>RC隔离级别时：LOCK_REC_NOT_GAP|LOCK_S</li>
+<li>RR隔离级别时：如果查询条件为唯一索引并且是唯一等值查询时加LOCK_REC_NOT_GAP|LOCK_S；非唯一索引或者查询会扫描多条记录时加LOCK_ORDINARY|LOCK_S锁，也就是记录本身和记录之前的GAP，以及下一条记录的GAP。</li>
+</ul>
+</li>
+<li>通常insert操作不加锁，在插入时检查到duplicate key(或者有一个被标记为删除的duplicate key)，普通的insert会加LOCK_S锁，而REPLACE INTO 或者 INSERT … ON DUPLICATE的语句时加X锁。<ul>
+<li>聚集索引，在小于等于RC隔离级别时加LOCK_REC_NOT_GAP类型的锁，否则加LOCK_ORDINARY模式的锁。</li>
+<li>非聚集索引，默认应该和聚集索引一样，在5.7版本中总是加LOCK_ORDINARY类型的锁。</li>
+</ul>
+</li>
+<li>外键检查，当删除一条父表上的记录时，需要检查是否有引用约束，会扫描子表上对应的记录，并加上S锁。<ul>
+<li>如果被删除的值被子表引用，则子表加LOCK_REC_NOT_GAP|LOCK_S锁，并且一旦检查到就可以退出扫描，判断出错。</li>
+<li>如果被删除的值没有被引用，则加LOCK_GAP|LOCK_S锁。（例外是被删除的值比子表对应的值都要大或者被扫描的记录标记为删除时加LOCK_ORDINARY|LOCK_S锁）</li>
+</ul>
+</li>
+<li>insert … select 插入数据时，会对select的表上扫描到的数据加S锁[RC下不会加锁，RR下会加锁]。（同样update … where id in (select from b)时会对b表中的数据加S锁[RR和RC下都会加锁]）</li>
+</ul>
+<p><sub>说明：RC级别下一般只会锁住记录本身，RR级别下会锁住记录和记录前的间隙[唯一索引且是等值查询时例外，也只需要锁住记录即可，因为RR级别可以防止幻读]</sub></p>
+<p>X锁：排他锁，在以下场景中加X锁。</p>
+<ul>
+<li>select … for update</li>
+<li>update …</li>
+<li>replace into</li>
+<li>insert on duplicate key</li>
+</ul>
+<blockquote>
+<p>插入意向锁是GAP锁的一种，多个插入意向锁之间不需要相互等待，在插入时会检查插入对象的下一条记录上是否有锁，如果下一条记录上存在锁，则需要判断该锁对象是否锁住了GAP，如果被锁住了，则需要等待。（RR隔离级别下通过GAP锁避免幻读）</p>
+</blockquote>
+<p><sub>说明：当通过主键进行更新时，会对主键上加锁，如果是通过二级索引进行更新时会对二级索引和主键索引都加锁，通过二级索引更新时二级索引RC级别下一般加LOCK_REC_NO_GAP锁（唯一索引例外），RR下对记录加LOCK_ORIDINAY锁并且对下一条记录加GAP锁，主键上加LOCK_REC_NO_GAP锁。加锁的过程为先扫描二级索引找到满足条件的数据，然后根据二级索引的内容[对应主键的值]查找主键对应的记录并加上锁。</sub></p>
+<p><sub>说明：RC隔离级别下对不满足where条件的数据会被立刻释放掉[先加锁后释放，违法2PC原则]，但RR级别则会到事务结束才会释放。</sub></p>
+<p>举例说明:</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>userid</th>
+<th>pubtime</th>
+<th>comment</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>10</td>
+<td>hdc</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>yyy</td>
+<td>3</td>
+<td></td>
+</tr>
+<tr>
+<td>8</td>
+<td>hdc</td>
+<td>5</td>
+<td>good</td>
+</tr>
+<tr>
+<td>1</td>
+<td>hdc</td>
+<td>10</td>
+<td></td>
+</tr>
+<tr>
+<td>100</td>
+<td>bbb</td>
+<td>20</td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>hdc</td>
+<td>100</td>
+<td></td>
+</tr>
+<tr>
+<td><sub>标注：id为主键，pubtime和userid为联合索引</sub></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p>在RC隔离级别下：delete from tablenam where pubtime &gt; 1 and pubtime &lt;20 and userid = ‘hdc’ and comment is not null;二级索引会对[5,hdc],<font color=red>[10,hdc]</font>的记录加X锁，主键索引会对[8],<font color=red>[1]</font>的记录加X锁，但是<font color=red>[10,hdc]和[1]</font>这个锁在事务结束前会被释放。（在index condition pushdown时二级索引的[3, yyy]这条记录不会加锁，对应的主键上的[4]也不会加锁,不支持ICP时这两条记录也会加锁。）</p>
+<p>在RR隔离级别下：与RC隔离级别的区别为二级索引会加上GAP锁，并且<font color=red>[10,hdc]和[1]</font>锁在事务结束前不会释放。</p>
+<p><sub>特例：ICP只有在通过索引能过滤数据时才能起作用，假如需要过滤的字段不在索引中则无法进行过滤，会加锁返回给server层。RC隔离级别有一定的优化，会提前释放不满足过滤条件的记录上的锁。</sub></p>
+<blockquote>
+<p>mysql中的MVCC通过回滚段实现，每一条数据有隐藏的字段指向之前的版本内容，另外存在快照读和当前读的区别，普通的select为快照读，但是对加x锁的读为当前读。因此在可重复读隔离级别下，select 和select for update读取到的数据是不一样的。</p>
+</blockquote>
+<h4 id="执行计划"><a href="#执行计划" class="headerlink" title="执行计划"></a>执行计划</h4><p>通过explain sql可以查看对应sql的执行计划，执行计划中各个字段含义如下。</p>
+<pre>
+<small>
++----+-------------+-------+------+---------------+------+---------+------+------+-------+
+| id | select_type | table | type | possible_keys | key  | key_len | ref  | rows | Extra |
++----+-------------+-------+------+---------------+------+---------+------+------+-------+
+|  1 | SIMPLE      | actor | ALL  | NULL          | NULL | NULL    | NULL |    3 | NULL  |
++----+-------------+-------+------+---------------+------+---------+------+------+-------+
+</small>
+</pre>
+
+
+<ul>
+<li><p>id：查询的序列号，表示查询中执行select子句或操作的顺序。id越大的优先级越高，越先执行，id相同的从上往下顺序执行。</p>
+</li>
+<li><p>select_type：查询的类型，用于区分普通查询，联合查询，子查询等复杂的查询。</p>
+<ul>
+<li>SIMPLE：简单的select查询，查询中不包含子查询和union。</li>
+<li>PRIMARY：查询中包含任何复杂的查询时，最外层查询被标记为primary(例如select中有子查询，或者from中有子查询)。</li>
+<li>SUBQUERY：在select或where列表中包含了子查询。</li>
+<li>DERIVED：在from列表中包含的子查询被标记为derived，mysql或递归执行这些子查询，把结果放在临时表里。</li>
+<li>UNION：若第二个select出现在union之后，则被标记为union，若union包含在from子句的子查询中，外层select将被标记为derived。</li>
+<li>UNION RESULT：从union表获取结果的select</li>
+</ul>
+</li>
+<li><p>type：访问类型，sql查询优化中很重要的指标，mysql决定如何查找表中的行，从好到坏依次是<strong>system</strong>&gt;<strong>const</strong>&gt;<strong>eq_ref</strong>&gt;<strong>ref</strong>&gt;fulltext&gt;ref_or_null&gt;index_merge&gt;unique_subquery&gt;index_subquery&gt;<br><strong>range</strong>&gt;<strong>index</strong>&gt;<strong>ALL</strong></p>
+<ul>
+<li>system：表示只有一行记录，是const类型的特例。例如select * from （select * from tablename where primarykey = 1），则最外面查询的访问类型为system，这种类型的访问类型一般不会出现。</li>
+<li>const：表示通过索引一次就找到了，用于主键和唯一索引中，因为只需要匹配一行数据，所以很快(唯一索引中的等于查询，有多个值时会变成range即使走的是唯一索引)。</li>
+<li>eq_ref：唯一索引扫描，对于每一个索引键，表中只有一条记录与之匹配，常见于两个表通过唯一索引关联时。</li>
+<li>ref：非唯一性索引扫描，返回匹配某个<strong>单值</strong>的所有行。</li>
+<li>range：只检索给定范围的行，使用一个索引来选择，key列显示用来哪个索引。一般在where语句中出现了between，&lt;,&gt;,in等的查询中，这种索引列上的范围比全索引扫描要好。</li>
+<li>index：全索引扫描，与ALL的区别为index类型只需要遍历索引树。例如explain select id from tablename。</li>
+<li>ALL：全表扫描。</li>
+</ul>
+</li>
+<li><p>possible_keys：查询涉及到的字段上存在的索引，则对应的索引会被列出，但不一定被查询实际使用。</p>
+</li>
+<li><p>key：实际使用的索引，如果为NULL，则没有使用索引。<strong>查询中如果使用了覆盖索引（所有的字段都能从索引中获取），则该索引仅出现在key列表中</strong></p>
+</li>
+<li><p>key_len：表示索引中使用的字节数，查询中使用的索引长度，非实际使用的长度，理论上长度越短越好。[length计算规则，char(n)n字节，varchar(n)如果为utf-8则为3n+2,tinyint 1字节，smallint 2字节， int 4字节， bigint 8字节， date 3字节，timestamp 4字节，datetime 8字节，如果字段允许为null 需要1字节记录是否为null，单列索引最大长度为767字节，可以通过innodb_large_prefix最大调整到3072字节，并且加上row_format=compressed或者dynamic，联合索引最长为3072字节，与innodb默认为16k有关系]</p>
+</li>
+<li><p>ref：显示key列索引中，表查找值所用到的列(关联的字段)或常量(const)。</p>
+</li>
+<li><p>rows：根据表统计信息及索引使用情况，大致估算出找到所需记录所需要读取的行数。</p>
+</li>
+<li><p>Extra：十分重要的额外信息。</p>
+<ul>
+<li>Using filesort：对数据使用一个外部的索引排序，而不是按照表内的索引进行排序读取。通常在order by并且与索引中字段的顺序不一致时。</li>
+<li>Using temporary：使用临时表保存中间结果，常见于order by，group by和distinct中。</li>
+<li>Using index：表示相应的select操作使用了<strong>覆盖索引</strong>，避免了访问表的数据行，如果同时出现Using where，表示索引被用来执行索引键值的查找，如果没有出现Using where，表示索引用来读取数据而不是执行查找动作。</li>
+</ul>
+<p><sub>提示：覆盖索引中可以包括主键，因为辅助索引的值为主键</sub></p>
+<ul>
+<li>Using where：使用了where过滤</li>
+<li>Using join buffer：使用了链接缓存</li>
+<li>Impossible Where：表示where总是为false，获取不到任何数据</li>
+<li>select tables optimized away：在没有group by子句的情况下，基于索引优化的min、max操作，不必等到执行阶段再进行计算，查询执行计划生成时就可以完成优化。</li>
+<li>distinct：优化distinc操作，在找到第一个匹配的元组后停止找同样值的动作。</li>
+</ul>
+</li>
+</ul>
+<h4 id="隐式转换"><a href="#隐式转换" class="headerlink" title="隐式转换"></a>隐式转换</h4><ul>
+<li>两个参数至少一个是NULL时，比较的结果也是NULL。例外是使用*&lt;=&gt;*对两个NULL做比较时返回1，这两种情况下都不需要做类型转换。</li>
+<li>两个参数都是字符串，按照字符串来比较，不做类型转换。</li>
+<li>两个参数都是整数，按照整数来比较，不做类型转换。</li>
+<li>十六进制的值和非数字做比较时，被当做二进制串。</li>
+<li>有一个参数是TIMESTAP或DATETIME，并且另外一个参数是常量，常量会被转换为timestamp。</li>
+<li>有一个参数是decimal类型，如果另外一个参数是decimal或者整数，将整数转换为decimal后进行比较。如果另外一个是浮点数，将decimal转换为浮点数进行比较。</li>
+<li>所有其他情况下，两个参数都会被转换为浮点数进行比较。</li>
+</ul>
+<p><sub>注意：如果字段的字符集不一样也会导致索引失效，例如一个表用的utf8，另外一个表用utf8mb4。</sub></p>
+<blockquote>
+<p>explain extended 会在explain的基础上额外提供一些查询优化信息，紧随其后通过show warnings可以得到优化后的查询语句。还会有一个filtered列，是一个半分比的值，rows*filtered/100可以估算出和前一个表进行连接的行数。<br>explain partitions 如果是分区表，则会显示查询将访问的分区。<br>order by ,group by尽量用到索引，并且按照索引创建的顺序进行排序（匹配最左原则）。group by会先进行排序因此与order by一样，理论上group by的值和字段的顺序没关系，但是mysql也不会自动调整字段顺序以便走索引。（最左前缀匹配在oracle中还支持INDEX SKIP SCAN，当第一个字段的值只有几种类型时也可能会优化走索引）</p>
+</blockquote>
+<h4 id="in和exists的区别"><a href="#in和exists的区别" class="headerlink" title="in和exists的区别"></a>in和exists的区别</h4><p>sql表关联时的原则是小表驱动大表，尽量使外循环的数据量少，因为一般关联时会建立索引，因此在10万条数据中找1条数据和在1万条数据中找1条数据区别不大。因此当外循环数据少时速度更快。<br>以下两个sql返回值是一样的，只是写法不一样，一种用in一种用exists。</p>
+<ol>
+<li>select * from table_a a where a.id in (<em>select id from table_b b</em>);</li>
+<li>*select * from table_a* a where exists (select 1 from table_b b where b.id = a.id);</li>
+</ol>
+<p>不同之处是红色字体的语句会先执行，因此当table_a比table_b数据量大很多时 in会效率高，反过来时exists高。</p>
+<h3 id="left-join-时-on和where的区别"><a href="#left-join-时-on和where的区别" class="headerlink" title="left join 时 on和where的区别"></a>left join 时 on和where的区别</h3><p>假如有actor和film_actor两个表，表的数据如下：</p>
+<pre>
+select * from actor;
++----+------+---------------------+
+| id | name | update_time         |
++----+------+---------------------+
+|  1 | a    | 2017-12-22 15:27:18 |
+|  2 | b    | 2017-12-22 15:27:18 |
+|  3 | c    | 2017-12-22 15:27:18 |
++----+------+---------------------+
+</pre>
+<pre>
+select * from film_actor;
++----+---------+----------+--------+
+| id | film_id | actor_id | remark |
++----+---------+----------+--------+
+|  1 |       1 |        1 | NULL   |
+|  2 |       1 |        2 | NULL   |
+|  3 |       2 |        1 | NULL   |
++----+---------+----------+--------+
+</pre>
+<pre>
+select * from actor a left join film_actor f on a.id = f.actor_id;
++----+------+---------------------+------+---------+----------+--------+
+| id | name | update_time         | id   | film_id | actor_id | remark |
++----+------+---------------------+------+---------+----------+--------+
+|  1 | a    | 2017-12-22 15:27:18 |    1 |       1 |        1 | NULL   |
+|  2 | b    | 2017-12-22 15:27:18 |    2 |       1 |        2 | NULL   |
+|  1 | a    | 2017-12-22 15:27:18 |    3 |       2 |        1 | NULL   |
+|  3 | c    | 2017-12-22 15:27:18 | NULL |    NULL |     NULL | NULL   |
++----+------+---------------------+------+---------+----------+--------+
+</pre>
+
+<pre>
+select * from actor a left join film_actor f on a.id = f.actor_id  and a.name = 'a';
++----+------+---------------------+------+---------+----------+--------+
+| id | name | update_time         | id   | film_id | actor_id | remark |
++----+------+---------------------+------+---------+----------+--------+
+|  1 | a    | 2017-12-22 15:27:18 |    1 |       1 |        1 | NULL   |
+|  1 | a    | 2017-12-22 15:27:18 |    3 |       2 |        1 | NULL   |
+|  2 | b    | 2017-12-22 15:27:18 | NULL |    NULL |     NULL | NULL   |
+|  3 | c    | 2017-12-22 15:27:18 | NULL |    NULL |     NULL | NULL   |
++----+------+---------------------+------+---------+----------+--------+
+</pre>
+<pre>
+select * from actor a left join film_actor f on a.id = f.actor_id  where a.name = 'a';
++----+------+---------------------+------+---------+----------+--------+
+| id | name | update_time         | id   | film_id | actor_id | remark |
++----+------+---------------------+------+---------+----------+--------+
+|  1 | a    | 2017-12-22 15:27:18 |    1 |       1 |        1 | NULL   |
+|  1 | a    | 2017-12-22 15:27:18 |    3 |       2 |        1 | NULL   |
++----+------+---------------------+------+---------+----------+--------+
+</pre>
+
+<small>
+由上面的结果可知left join 时where和on是有区别的，因为left join时左表的数据是需要都显示出来的，因此on条件只会影响哪些数据需要和右表关联，但是不会对结果数据进行过滤，如果需要过滤数据需要用where。
+</small>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mysql/" rel="tag"># mysql</a>
+              <a href="/tags/index/" rel="tag"># index</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/09/22/2019-09-22-Java%E4%B8%8E%E6%A8%A1%E5%BC%8F-%E5%88%9B%E5%BB%BA%E6%A8%A1%E5%BC%8F/" rel="prev" title="Java与模式-创建模式">
+      <i class="fa fa-chevron-left"></i> Java与模式-创建模式
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/12/15/2019-12-15-Spring%E7%AC%94%E8%AE%B0%E6%B1%87%E6%80%BB/" rel="next" title="Spring笔记汇总">
+      Spring笔记汇总 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E8%8C%83%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">三范式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E8%8C%83%E5%BC%8F"><span class="nav-number">1.1.</span> <span class="nav-text">第一范式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E8%8C%83%E5%BC%8F"><span class="nav-number">1.2.</span> <span class="nav-text">第二范式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%89%E8%8C%83%E5%BC%8F"><span class="nav-number">1.3.</span> <span class="nav-text">第三范式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.4.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1"><span class="nav-number">2.</span> <span class="nav-text">事务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB"><span class="nav-number">2.1.</span> <span class="nav-text">隔离级别</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mysql%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9B%B8%E5%85%B3%E5%86%85%E5%AE%B9"><span class="nav-number">3.</span> <span class="nav-text">mysql数据库相关内容</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95"><span class="nav-number">3.1.</span> <span class="nav-text">索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%81"><span class="nav-number">3.2.</span> <span class="nav-text">锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%A8%E9%94%81"><span class="nav-number">3.2.1.</span> <span class="nav-text">表锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%8C%E9%94%81"><span class="nav-number">3.2.2.</span> <span class="nav-text">行锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92"><span class="nav-number">3.2.3.</span> <span class="nav-text">执行计划</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9A%90%E5%BC%8F%E8%BD%AC%E6%8D%A2"><span class="nav-number">3.2.4.</span> <span class="nav-text">隐式转换</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#in%E5%92%8Cexists%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">3.2.5.</span> <span class="nav-text">in和exists的区别</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#left-join-%E6%97%B6-on%E5%92%8Cwhere%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">3.3.</span> <span class="nav-text">left join 时 on和where的区别</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="wjainng"
+      src="/images/mountain.jpg">
+  <p class="site-author-name" itemprop="name">wjainng</p>
+  <div class="site-description" itemprop="description">学而不思则罔思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wjainng</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

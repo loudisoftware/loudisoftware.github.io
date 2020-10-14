@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="JAVA 架构java架构由下面四部分组成:  java 编程语言 java class 文件格式 java 编程接口 java 虚拟机  Java虚拟机的运行时数据区虽然java虚拟机的实现各不一样，但是每个Java虚拟机必须支持下面的运行时组件.  Method area(方法区) Heap(堆) Stack(栈) Registers(寄存器) Constant Pool(常量池)  Heap">
+<meta property="og:type" content="article">
+<meta property="og:title" content="1.Inside Java(Pro Java)">
+<meta property="og:url" content="http://example.com/2015/11/08/2015-11-08-1-Inside-Java-Pro-Java/index.html">
+<meta property="og:site_name" content="WJAINNG">
+<meta property="og:description" content="JAVA 架构java架构由下面四部分组成:  java 编程语言 java class 文件格式 java 编程接口 java 虚拟机  Java虚拟机的运行时数据区虽然java虚拟机的实现各不一样，但是每个Java虚拟机必须支持下面的运行时组件.  Method area(方法区) Heap(堆) Stack(栈) Registers(寄存器) Constant Pool(常量池)  Heap">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2015-11-08T07:38:27.000Z">
+<meta property="article:modified_time" content="2020-09-16T15:15:44.738Z">
+<meta property="article:author" content="wjainng">
+<meta property="article:tag" content="JAVA">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2015/11/08/2015-11-08-1-Inside-Java-Pro-Java/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>1.Inside Java(Pro Java) | WJAINNG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">WJAINNG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2015/11/08/2015-11-08-1-Inside-Java-Pro-Java/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          1.Inside Java(Pro Java)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2015-11-08 15:38:27" itemprop="dateCreated datePublished" datetime="2015-11-08T15:38:27+08:00">2015-11-08</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="JAVA-架构"><a href="#JAVA-架构" class="headerlink" title="JAVA 架构"></a>JAVA 架构</h2><p>java架构由下面四部分组成:</p>
+<ul>
+<li>java 编程语言</li>
+<li>java class 文件格式</li>
+<li>java 编程接口</li>
+<li>java 虚拟机</li>
+</ul>
+<h2 id="Java虚拟机的运行时数据区"><a href="#Java虚拟机的运行时数据区" class="headerlink" title="Java虚拟机的运行时数据区"></a>Java虚拟机的运行时数据区</h2><p>虽然java虚拟机的实现各不一样，但是每个Java虚拟机必须支持下面的运行时组件.</p>
+<ul>
+<li>Method area(方法区)</li>
+<li>Heap(堆)</li>
+<li>Stack(栈)</li>
+<li>Registers(寄存器)</li>
+<li>Constant Pool(常量池)</li>
+</ul>
+<h3 id="Heap"><a href="#Heap" class="headerlink" title="Heap"></a>Heap</h3><p>堆是用来动态或者临时分配内存的一个内存空闲区域。为类和数组提供内存。如果堆没有足够的内存分配则会报OutOfMemoryError异常。</p>
+<h3 id="Stack"><a href="#Stack" class="headerlink" title="Stack"></a>Stack</h3><p>栈用来保持方法执行的状态。栈帧保存数据和中间结果包括方法执行的环境，方法的本地变量和方法的操作栈。操作栈保存绝大部分字节指令的参数和返回值。执行环境包含指向方法调用的指针。如果执行过程中栈的大小不足则会报StackOverflowError异常。</p>
+<h3 id="Method-Area"><a href="#Method-Area" class="headerlink" title="Method Area"></a>Method Area</h3><p>方法区供java虚拟机的所有线程共享。用来存储常量池、方法数据、字段数据、方法和构造函数的字节代码。</p>
+<h3 id="Registers"><a href="#Registers" class="headerlink" title="Registers"></a>Registers</h3><p>主要的寄存器为PC寄存器，指向正在执行的java虚拟机指令对应的地址。如果正在执行的为native方法，则PC寄存器的值为undefined.java虚拟机中的其他寄存器包括一个指向当前方法的指针，一个当前方法第一个本地变量的指针，一个指向操作栈顶的指针。</p>
+<h3 id="Runtime-Constant-Pool"><a href="#Runtime-Constant-Pool" class="headerlink" title="Runtime Constant Pool"></a>Runtime Constant Pool</h3><p>运行时常量池类似于其他语言中的符号表，包含数字字面值和字段常量。每一个运行时常量是从方法区中分配，当JVM加载类或者接口时创建。</p>
+<h2 id="Loading-Linking-Initializing"><a href="#Loading-Linking-Initializing" class="headerlink" title="Loading,Linking,Initializing"></a>Loading,Linking,Initializing</h2><p>JVM解释执行java字节码必须执行下面三个步骤。</p>
+<ul>
+<li>加载：当JVM加载类时，必须找到一个表示类或者接口的二进制表示。并且从对应的二进制创建一个Class对象。Class对象封装了类或者接口的运行时状态。</li>
+<li>链接：链接是把加载的类或者接口与JVM运行环境绑定，为执行做准备。</li>
+<li>初始化：当JVM执行类或者接口的初始化方法时执行。</li>
+</ul>
+<h3 id="The-First-Step"><a href="#The-First-Step" class="headerlink" title="The First Step"></a>The First Step</h3><p>当一个独立的java应用启动时JVM做的第一件事就是创建一个包含main方法的类对应的Class对象。JVM链接并且初始化改类，并调用main方法。</p>
+<h3 id="Loading"><a href="#Loading" class="headerlink" title="Loading"></a>Loading</h3><p>加载过程由类加载器进行，类加载器本身是ClassLoader的一个子类。<br>有两种类型的类加载器：第一种由JVM提供称为启动类加载器，第二种为用户自定义加载器。用户自定义加载器为ClassLoader的子类。一个类加载器可以把一部分或者全部功能委托给其他类加载器。真正创建Class对象对应的类加载器为定义类加载器(defining loader)，开始加载类的加载器为初始化类加载器(initiating loader)。</p>
+<p>通过启动类加载器加载：首先检查类加载是否被标记为需要加载的类的初始化类加载器，如果是则Class对象已经存在，加载结束。否则则搜索对应的class文件，如果找到则创建一个对应的Class实例，否则抛出NoClassDefFoundError异常。<br>PS:NoClassDefFoundError和ClassNotFoundException的区别<br>Java支持使用Class.forName动态加载类，如果一个类名被当做参数传人但是在类路径中没有找到则会抛出ClassNotFoundException。ClassLoader.loadClass,ClassLoader.findSystemClass在动态加载类到内存时也会抛出这个异常。<br>要查找的类在编译的时候是存在的，运行时却找不到类的定义，则会导致NoClassDefFoundError。</p>
+<p>通过自定义类加载器加载：与启动类加载器一样，先检查是否已经被标记为对应类的初始化类加载器，如果是则对应的类已经被加载，加载过程结束。否则调用loadClass把字节数组转换成ClassFile结构，然后调用defineClass创建Class实例。loadClass也可以把加载任务委托给其他类加载器。</p>
+<h3 id="Linking"><a href="#Linking" class="headerlink" title="Linking"></a>Linking</h3><h4 id="Class文件校验"><a href="#Class文件校验" class="headerlink" title="Class文件校验"></a>Class文件校验</h4>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JAVA/" rel="tag"># JAVA</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2015/09/12/2015-09-12-MAC%E6%8A%80%E5%B7%A7/" rel="prev" title="MAC技巧">
+      <i class="fa fa-chevron-left"></i> MAC技巧
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2015/12/14/2015-12-14-%E5%90%8D%E8%A8%80%E5%90%8D%E5%8F%A5/" rel="next" title="名言名句">
+      名言名句 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#JAVA-%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">JAVA 架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA"><span class="nav-number">2.</span> <span class="nav-text">Java虚拟机的运行时数据区</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Heap"><span class="nav-number">2.1.</span> <span class="nav-text">Heap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stack"><span class="nav-number">2.2.</span> <span class="nav-text">Stack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Method-Area"><span class="nav-number">2.3.</span> <span class="nav-text">Method Area</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Registers"><span class="nav-number">2.4.</span> <span class="nav-text">Registers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Runtime-Constant-Pool"><span class="nav-number">2.5.</span> <span class="nav-text">Runtime Constant Pool</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Loading-Linking-Initializing"><span class="nav-number">3.</span> <span class="nav-text">Loading,Linking,Initializing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-First-Step"><span class="nav-number">3.1.</span> <span class="nav-text">The First Step</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Loading"><span class="nav-number">3.2.</span> <span class="nav-text">Loading</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Linking"><span class="nav-number">3.3.</span> <span class="nav-text">Linking</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Class%E6%96%87%E4%BB%B6%E6%A0%A1%E9%AA%8C"><span class="nav-number">3.3.1.</span> <span class="nav-text">Class文件校验</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="wjainng"
+      src="/images/mountain.jpg">
+  <p class="site-author-name" itemprop="name">wjainng</p>
+  <div class="site-description" itemprop="description">学而不思则罔思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wjainng</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

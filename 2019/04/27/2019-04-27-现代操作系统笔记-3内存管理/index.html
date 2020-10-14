@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="内存管理经过多年的探索，人们提出了分层存储器体系的概念，在这个体系中，速度越快容量越小。 操作系统中管理分层存储器体系的部分称为存储管理器，其任务时有效地管理内存，即记录哪些内存正在使用，哪些是空闲的，在进程需要时为期分配内存，在进程使用完后释放内存。 无存储器抽象早期大型计算机和个人计算机都没有存储器抽象，每一个程序都直接访问物理内存。这种情况下内存中不能同时运行两个程序，因为第二个程序在200">
+<meta property="og:type" content="article">
+<meta property="og:title" content="现代操作系统笔记-3内存管理">
+<meta property="og:url" content="http://example.com/2019/04/27/2019-04-27-%E7%8E%B0%E4%BB%A3%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0-3%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="WJAINNG">
+<meta property="og:description" content="内存管理经过多年的探索，人们提出了分层存储器体系的概念，在这个体系中，速度越快容量越小。 操作系统中管理分层存储器体系的部分称为存储管理器，其任务时有效地管理内存，即记录哪些内存正在使用，哪些是空闲的，在进程需要时为期分配内存，在进程使用完后释放内存。 无存储器抽象早期大型计算机和个人计算机都没有存储器抽象，每一个程序都直接访问物理内存。这种情况下内存中不能同时运行两个程序，因为第二个程序在200">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/mmu.svg">
+<meta property="og:image" content="http://example.com/images/os-memory-exchange.svg">
+<meta property="og:image" content="http://example.com/images/%E7%BC%BA%E9%A1%B5%E4%B8%AD%E6%96%AD.jpg">
+<meta property="og:image" content="http://example.com/images/MULTICS%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98.svg">
+<meta property="article:published_time" content="2019-04-27T09:08:17.000Z">
+<meta property="article:modified_time" content="2020-09-16T15:15:44.764Z">
+<meta property="article:author" content="wjainng">
+<meta property="article:tag" content="OS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/mmu.svg">
+
+<link rel="canonical" href="http://example.com/2019/04/27/2019-04-27-%E7%8E%B0%E4%BB%A3%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0-3%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>现代操作系统笔记-3内存管理 | WJAINNG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">WJAINNG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/04/27/2019-04-27-%E7%8E%B0%E4%BB%A3%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0-3%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          现代操作系统笔记-3内存管理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-04-27 17:08:17" itemprop="dateCreated datePublished" datetime="2019-04-27T17:08:17+08:00">2019-04-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h1><p>经过多年的探索，人们提出了<strong>分层存储器体系</strong>的概念，在这个体系中，速度越快容量越小。</p>
+<p>操作系统中管理分层存储器体系的部分称为<strong>存储管理器</strong>，其任务时有效地管理内存，即记录哪些内存正在使用，哪些是空闲的，在进程需要时为期分配内存，在进程使用完后释放内存。</p>
+<h2 id="无存储器抽象"><a href="#无存储器抽象" class="headerlink" title="无存储器抽象"></a>无存储器抽象</h2><p>早期大型计算机和个人计算机都没有存储器抽象，每一个程序都直接访问物理内存。这种情况下内存中不能同时运行两个程序，因为第二个程序在2000的位置写入的值会覆盖到第一个程序在相同位置上的内容。</p>
+<blockquote>
+<p>无存储器时的并行可以通过多线程实现，因为线程中的地址是共享的。另一种方式是内存中地址分配分配一个保护键[例如2K一个保护键]，保护键存在CPU的特殊寄存器中，PSW(程序状态字)中存有一个4位码，如果运行中的进程访问保护键与PSW码不同时，由硬件捕获，可以防止用户进程之间的互相干扰，还需要解决的一个问题是相对地址的问题，可以通过在加载程序到内存时使用<strong>静态重定位</strong>修改其地址的值(加上程序被装载的基础地址。)</p>
+</blockquote>
+<h2 id="存储器的抽象：地址空间"><a href="#存储器的抽象：地址空间" class="headerlink" title="存储器的抽象：地址空间"></a>存储器的抽象：地址空间</h2><p>暴露物理地址给进程的问题：</p>
+<ol>
+<li>用户程序可以寻址内存的每个字节，容易破坏操作系统和其他进程。</li>
+<li>同时运行多个程序很困难。</li>
+</ol>
+<h3 id="地址空间"><a href="#地址空间" class="headerlink" title="地址空间"></a>地址空间</h3><p>地址空间是一个进程可用于寻址内存的一套地址集合。每个进程都有一个自己的地址空间，并且这个地址空间独立于其他进程的地址空间。</p>
+<p><strong>基址寄存器与界限寄存器</strong><br>动态重定位，简单地把每个进程的地址空间映射到物理内存的不同部分。使用的方法是使用两个特殊的硬件寄存器，<em>基址寄存器</em>和<em>界限寄存器</em>。进行内存访问时，默认加上基址寄存器中的值到内存地址上，同时检查地址的值是否大于界限寄存器的值。<em>缺点是每次访问内存都需要进行加法和比较运算，没有特殊电路的支持速度慢</em></p>
+<h3 id="交换技术"><a href="#交换技术" class="headerlink" title="交换技术"></a>交换技术</h3><p>处理内存超载的两种通用方法：</p>
+<ol>
+<li>交换技术：把一个进程完整调入内存，运行一段时间后，存回磁盘。空闲进程主要存储在磁盘上。</li>
+<li>虚拟内存：能使程序在只有一部分被调入内存的情况下运行。</li>
+</ol>
+<h3 id="空闲内存管理"><a href="#空闲内存管理" class="headerlink" title="空闲内存管理"></a>空闲内存管理</h3><p>在动态分配内存时，操作系统必须对其进行管理，跟踪内存使用的两种情况：位图和空闲链表。</p>
+<ul>
+<li>位图内存管理<br>内存被划分成小到几个字或大到几千字节的分配单元，每个分配单元对应位图中的一位，0表示空闲，1表示占用。分配单元越小，位图越大，分配单元越大，则最后一个分配单元中就有一定数量的内存被浪费了。在分配内存时需要查找连续0串是一个耗时的操作(缺点)。</li>
+<li>空闲链表管理<br>维护一个记录已分配内存段和空闲内存段的链表。链表中的节点或者包含一个进程或者是两个进程间的一块空闲区。</li>
+</ul>
+<p>进程分配算法：</p>
+<ol>
+<li>首次适配算法，沿着链表搜索，直到找到一个足够大的空闲区。（速度快，尽可能少地搜索链表节点）</li>
+<li>下次适配算法，与首次适配算法一样，但是会记录每次找到合适的空闲区的位置，下次寻找从该位置开始而不是从头开始。</li>
+<li>最佳适配算法，查找一个最接近实际需要的空闲区，以最好滴匹配请求和可用空闲区。</li>
+<li>最差适配算法，与最佳适配算法相反每次找到最大的的可用空闲区。</li>
+<li>快速适配算法，为那些常用大小的空闲区维护单独的链表。</li>
+</ol>
+<h2 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h2><p>软件大小的增加速度超过内存的速度，之前解决软件速度超过内存的方法是使用覆盖管理程序，同时程序员必须把程序分割成多个片段。</p>
+<p>虚拟内存的基本思想是：每个程序拥有自己的地址空间，这个空间被分割成多个块，每一块称为一页或页面。每一页有连续的地址范围，这些页被映射到物理内存，并不是所有的页都必须在内存中才能运行程序，当程序引用到一部分不在物理内存中的地址空间时，由操作系统负责装入物理内存并重新执行失败的指令。</p>
+<h3 id="分页"><a href="#分页" class="headerlink" title="分页"></a>分页</h3><p>由程序产生的地址称为<em>虚拟地址</em>，它们构成了一个<em>虚拟地址空间</em>。在使用虚拟内存的情况下，虚拟地址不是被直接送到内存地址而是被送到<em>内存管理单元</em>，内存管理单元把虚拟地址映射为物理内存地址。</p>
+<p>虚拟地址空间按照固定大小划分为称为<em>页面（page）</em>的若干单元，物理内存中对应的单元称为<em>页框（page frame）</em>。页面和页框的大小通常是一样的。</p>
+<p><img src="/images/mmu.svg" alt="mmu内部结构"></p>
+<h3 id="页表"><a href="#页表" class="headerlink" title="页表"></a>页表</h3><p>虚拟地址到物理地址的映射可以概括为：虚拟地址呗分成虚拟页号（高位部分）和偏移量（低位部分）两部分。例如16位地址和4KB的页面大小，高4位可以指定16个页面中的一页，低12位确定页面中的字节偏移量。虚拟页号可用作页表的索引，以找到该虚拟页面对应的页表项。由页表项找到页框号（有的话），把页框号拼接到偏移量的高位，替换掉虚拟页号，形成内存的物理地址。</p>
+<p><strong>页表项的结构</strong><br>页表项的结构是与机器密切相关的，不同机器的页表项的信息大致相同，一般为32位。一般由高速缓存禁止位、访问位、修改位、保护位、在/不在位、页框号组成。</p>
+<ul>
+<li>高速缓存禁止位：用于禁止页面被高速缓存。例如对I/O设备的映射。</li>
+<li>访问位：不论是读还是写都会设置该位，用来帮助操作系统在发生缺页中断时选择要淘汰的页面。</li>
+<li>修改位：在写入一页时由硬件自动设置，表示该页是否有修改，如果有修改过则必须把它写回磁盘。</li>
+<li>保护位：指出一个页允许什么类型的访问，例如用1位表示，0表示读写，1表示只读。或者用三位表示是否允许读、写、执行操作。</li>
+<li>在/不在位：表示该页是否有映射到物理页框。</li>
+<li>页框号：物理页框的号码。</li>
+</ul>
+<h3 id="加速分页过程"><a href="#加速分页过程" class="headerlink" title="加速分页过程"></a>加速分页过程</h3><p>分页系统中考虑的两个主要问题：</p>
+<ol>
+<li>虚拟地址到物理地址的映射必须非常快。(因为每次访问内存都需要进行虚拟地址到物理地址的映射，所有指令都必须来自内存，并且很多指令也会访问内存中的操作数)</li>
+<li>如果虚拟地址空间很大，页表也会很大。(现代计算机使用至少32位的虚拟地址，而且64位越来越普遍，如果页面大小为4KB，32位地址空间将有100万项)</li>
+</ol>
+<p>一种简单的设计是使用快速硬件寄存器阵列组成的单一页表，每一个表项对应一个虚拟页面，虚拟页号作为索引，当启动一个进程时，操作系统把保存在内存中的进程页表的副本载入寄存器中，在进程运行过程中，不必再为页表而访问内存，优点是速度快，缺点是页表很大时，代价高昂，且每一次上下文切换都必须装载整个页表，也会降低性能。另一种极端的方法是，整个页表都在内存中，所需要的硬件仅仅是一个指向页表起始位置的寄存器，这样上下文切换时只需要重新装入一个寄存器，但是执行指令时，需要一次或多次内存访问来完成页表项的读入，速度非常慢。</p>
+<p><strong>转换检测缓冲区（TLB）</strong><br>基于大多数程序总是对少量的页面进行多次访问，而不是相反，因此只有很少的页表项会被反复读取，因此只需要一个小型的硬件设备，将虚拟地址直接映射到物理地址，而不必再访问页表。如果虚拟页在TLB中存在则不需要在内存中访问页表。</p>
+<p><strong>软件TLB管理</strong><br>许多现代的RISC机器，几乎所有的页面管理都是在软件中实现，TLB表项被操作系统显示地装载，当发生TLB访问失效时，不再是由MMU到也表中查找并取出需要的页表项，而是生成一个TLB失效并将问题交给操作系统解决。（当TLB大到[例如64时]可以减少失效率时，TLB的软件管理就会变得足够有效）。</p>
+<ul>
+<li>软失效：当一个页面访问在内存中而不在TLB中时产生，此时只需要更新TLB，不需要产生磁盘I/O。</li>
+<li>硬失效：当一个页面访问不再内存中时，需要产生磁盘I/O并且更新TLB。</li>
+</ul>
+<h3 id="针对大内存的页表"><a href="#针对大内存的页表" class="headerlink" title="针对大内存的页表"></a>针对大内存的页表</h3><ul>
+<li><p>多级页表<br>例如32位的虚拟地址被划分为10位的PT1域、10位的PT2域和12位的Offset（偏移量）域。页面的大小还是4K，但是一共有$2^{20}$个页面。引入多级页表也可以避免把全部的页表一直保存在内存中，因为大部分情况下用不到这么多的空间。</p>
+</li>
+<li><p>倒排页表<br>这种设计中，实际内存中的每一个页框对应一个表项，而不是每一个虚拟页面对应一个表项。例如64位虚拟地址，4KB的页，4GB的RAM，倒排序仅仅需要$2^{20}$个页表项。</p>
+</li>
+</ul>
+<p>倒排序节省了大量空间（当虚拟地址空间比物理内存大得多的时候），但是从虚拟地址到物理地址的转换变得很困难。因为每次内存访问都需要搜索整个倒排页表来查找某一个表项。</p>
+<p>一种改进的办法是使用TLB，如果TLB能够记录所有频繁使用的页面，则地址转换就能变得通常一样快，但是当TLB失效时，需要用软件搜索整个倒排页表。一种可行的方法是建立一张散列表，用虚拟地址进行散列，散列表中的槽数与物理页数一样多时，则散列表的冲突链的平均长度为1。</p>
+<h2 id="页面置换算法"><a href="#页面置换算法" class="headerlink" title="页面置换算法"></a>页面置换算法</h2><p>当发生缺页中断时，操作系统必须在内存中选择一个页面将其换出内存，以便为即将调入的页面腾出空间。如果换出的页面在内存驻留期间已经被修改过，就必须把它写回磁盘以更新该页面在磁盘的副本。</p>
+<h3 id="最优页面置换算法"><a href="#最优页面置换算法" class="headerlink" title="最优页面置换算法"></a>最优页面置换算法</h3><p>如果能够知道一个页面在访问前需要执行的指令数，则可以选择一个需要执行指令数最大的页面进行置换。但是操作系统并不能知道各个页面下一次将在什么时候访问。（无法实现）</p>
+<h3 id="最近未使用页面置换算法（NRU）"><a href="#最近未使用页面置换算法（NRU）" class="headerlink" title="最近未使用页面置换算法（NRU）"></a>最近未使用页面置换算法（NRU）</h3><p>大部分具有虚拟内存的计算机中，系统为每个页面设置了两个状态，读和写位。可以用R位和M位构造一个简单的页面置换算法：初始时两个位都是0，R被定期（例如每次时钟中断时）清零，区别最近没有被访问的页面和被访问的页面。</p>
+<p>LRU算法中，页面按如下的顺序进行置换</p>
+<ol>
+<li>没有被访问，没有被修改。</li>
+<li>没有被访问，已被修改。</li>
+<li>已被访问，没有被修改。</li>
+<li>已被访问，已被修改。</li>
+</ol>
+<h3 id="先进先出页面置换算法（FIFO）"><a href="#先进先出页面置换算法（FIFO）" class="headerlink" title="先进先出页面置换算法（FIFO）"></a>先进先出页面置换算法（FIFO）</h3><p>由操作系统维护一个所有当前在内存中的页面的链表，最新进入的页面在表尾，最早进入的页面在表头，当发生缺页中断时，淘汰表头的页面并把心导入的页面加到表尾。（很少存粹使用FIFO算法，因为很可能淘汰经常使用的页面）</p>
+<h3 id="第二次机会页面置换算法"><a href="#第二次机会页面置换算法" class="headerlink" title="第二次机会页面置换算法"></a>第二次机会页面置换算法</h3><p>对FIFO算法进行一个简单的修改，检查最老页面的R位，如果R是0，则这个页面即老又没有使用，可以立刻置换掉，否则把R清0，并把该页面放到链表的尾端。</p>
+<h3 id="时钟页面置换算法"><a href="#时钟页面置换算法" class="headerlink" title="时钟页面置换算法"></a>时钟页面置换算法</h3><p>二次机会算法需要经常在链表中移动页面，降低了效率又不是很有必要，一个更好的办法是把所有的页面都保存在一个类似钟面的环形链表中，一个表针指向最老的页面。通过指针的移动代替链表中元素的移动。（如果当前的页R为0则替换该页，否则把R设置为0，指针往前移，直到找到一个R位为0的项）</p>
+<h3 id="最近最少使用页面置换算法（LRU）"><a href="#最近最少使用页面置换算法（LRU）" class="headerlink" title="最近最少使用页面置换算法（LRU）"></a>最近最少使用页面置换算法（LRU）</h3><p>对最优算法的一个近似，基于最近被频繁使用的页面很可能在后面的指令中被使用，可以反过来认为最近没有使用的页面在未来也很有可能不会使用。</p>
+<p>维护一个LRU链表的代价很高，因为每一次页面的访问都需要更新链表。有些使用特殊硬件实现LRU的方法，例如维护一个64位的计数器，在每一条指令执行完后自动加1，每一个页表项有一个容纳这个计数器值的域，每次访问内存后，把当前的值存入被访问页面的页表项中。值最小的页面就是最近最少使用的页面。</p>
+<h3 id="用软件模拟LRU"><a href="#用软件模拟LRU" class="headerlink" title="用软件模拟LRU"></a>用软件模拟LRU</h3><p>一种可能的方案为NFU（Not Frequently Used,最不常用）算法。将每个页面与一个软件计数器相关联，计数器初始为0，每次时钟中断时，操作系统扫描内存中的所有页，把每个页面的R位加到它的计数器上。这样这个计数器大体上跟踪了各个页面被访问的频繁程度。缺页中断时，置换计数器最小的页面。</p>
+<p>上面算法的问题是不会忘记任何事情，如果要置换使用了很多次的页面需要很长的时间，可以通过对NFU的计数进行修改很好的解决该问题，每次计数时将计数器右移一位，把R位放在最左端。这个修改后的算法为<strong>老化算法</strong>。</p>
+<h3 id="工作集页面置换算法"><a href="#工作集页面置换算法" class="headerlink" title="工作集页面置换算法"></a>工作集页面置换算法</h3><p>在单纯的分页系统中，进程启动时，在内存中并没有页面，因此CPU获取第一条指令时就会产生一次缺页中断，因此需要一段时间后，进程需要的大部分页面都已经在内存中了，这个时候进程中的缺页中断才会变少。这个策略称为<strong>请求调页</strong>，页面是在需要时被调入，而不是预先装入。</p>
+<p>工作集：一个进程当前正在使用的页面的集合。<br><em>工作集也可以认为是最近k次内存访问所使用过的页面的集合</em></p>
+<p>假设任一时刻t，存在一个集合，它包含所有最近k次内存访问所访问过的页面。这个集合w(k,t)就是工作集。因为k+1一定会包括k次访问过的页面，因此w(k,t)是k的单调非递减函数。</p>
+<p>通过上次使用该页面的近似时间和R位近似工作集的内容，可以定义一个时间范围确定在这个时间有进行访问的页面。</p>
+<h3 id="工作集时钟页面置换算法"><a href="#工作集时钟页面置换算法" class="headerlink" title="工作集时钟页面置换算法"></a>工作集时钟页面置换算法</h3><h3 id="置换算法小节"><a href="#置换算法小节" class="headerlink" title="置换算法小节"></a>置换算法小节</h3><table>
+<thead>
+<tr>
+<th>算法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>最优算法</td>
+<td>不可实现，可作为基准</td>
+</tr>
+<tr>
+<td>NRU（最近未使用）算法</td>
+<td>LRU很粗糙的近似</td>
+</tr>
+<tr>
+<td>FIFO（先进先出）算法</td>
+<td>可能抛弃重要的页面</td>
+</tr>
+<tr>
+<td>第二次机会算法</td>
+<td>比FIFO有较大的改善</td>
+</tr>
+<tr>
+<td>时钟算法</td>
+<td>现实的</td>
+</tr>
+<tr>
+<td>LRU（最近最少使用）算法</td>
+<td>很优秀，但是难实现</td>
+</tr>
+<tr>
+<td>NFU（最不经常使用）算法</td>
+<td>LRU的相对粗略的近似</td>
+</tr>
+<tr>
+<td>老化算法</td>
+<td>非常近似LRU的有效算法</td>
+</tr>
+<tr>
+<td>工作集算法</td>
+<td>实现起来开销很大</td>
+</tr>
+<tr>
+<td>工作集时钟算法</td>
+<td>好的有效算法</td>
+</tr>
+</tbody></table>
+<h2 id="分页系统中的设计问题"><a href="#分页系统中的设计问题" class="headerlink" title="分页系统中的设计问题"></a>分页系统中的设计问题</h2><h3 id="局部分配策略与全局分配策略"><a href="#局部分配策略与全局分配策略" class="headerlink" title="局部分配策略与全局分配策略"></a>局部分配策略与全局分配策略</h3><p>之前的讨论一直避免考虑在相互竞争的可运行进程之间分配内存。</p>
+<p>局部算法：只在本进程中的页面进行置换。<br>全局算法：在所有进程中的页面进行置换。</p>
+<p>需要考虑的问题有：</p>
+<ul>
+<li>允许每一个进程分配同样多的页框，但是对大的程序不公平。</li>
+<li>可以参考缺页中断率进行页面的分配。</li>
+<li>局部算法中即使有大量的空闲页框也会导致颠簸。</li>
+</ul>
+<h3 id="负载控制"><a href="#负载控制" class="headerlink" title="负载控制"></a>负载控制</h3><p>减少竞争内存的进程数的一个好方法是将一部分进程交换到磁盘，并释放他们所占有的所有页面。该进程对应的页框可以被其他处于颠簸状态的进程分享。</p>
+<p>将足够的进程交换出去可以获取可接受的缺页中断率，将进程交换到磁盘需要同时考虑进程的特性（CPU密集型还是I/O密集型）以及其他进程的特性。</p>
+<h3 id="页面大小"><a href="#页面大小" class="headerlink" title="页面大小"></a>页面大小</h3><p>即使硬件设计只支持4k的页面，操作系统可以通过总是分配两个连续的页面达到8k的页框。</p>
+<ul>
+<li>页面过大会浪费更多的内存，平均情况下，最后一个页面有一半是空的。</li>
+<li>页面过小意味着程序需要更多的页面，又意味着需要更大的页表。一个32K的程序只需要4个8K的页面，却需要64个512字节的页面，内存与磁盘之间的传输一般是一次一页，传输的大部分时间都花在寻到和旋转延迟上，传输一个小页面所用的时间和传输一个大页面基本上是相同的。（大页面能更充分利用TLB空间，同样的内存大小页表大时所需的TLB表项更少）</li>
+</ul>
+<p>从数学上看，假设进程的平均大小为s个字节，页面大小是p个字节，每个页表项需要e个字节，则由页表和内部碎片造成的开销=$se/p+p/2$,通过求导可以计算出$p=\sqrt{2se}$,对于s=1MB每一个页表项e=8B，最优化页面大小使4KB。</p>
+<h3 id="分离的指令空间和数据空间"><a href="#分离的指令空间和数据空间" class="headerlink" title="分离的指令空间和数据空间"></a>分离的指令空间和数据空间</h3><p>大多数计算机只有一个地址空间，即存放程序也存放数据，如果地址空间足够大则没有问题。如果地址空间太小，程序员对地址空间的使用会出现困难。</p>
+<p>可以把地址空间分成指令空间和数据空间，这样可以使总的地址空间加倍，指令空间和数据空间有独立的页表，分别完成对虚拟地址到页框的映射，硬件在取指令时去指令空间页表，取数据时去数据空间页表。</p>
+<h3 id="共享页面"><a href="#共享页面" class="headerlink" title="共享页面"></a>共享页面</h3><p>在多道程序设计系统中，几个不同的用户同时运行同一个程序是很常见的，避免在内存中有一个页面的两份副本，共享页面效率更高。（一般只有只读的页面可以共享[例如程序文本]，数据页不能共享）</p>
+<p>如果系统支持分离的I空间和D空间，则让多个进程共享程序就非常简单，这些进程使用相同的I空间页表，不同的D空间页表即可。（还是需要数据结构记录页表中的哪些页面是否共享，以便在进程结束，或者把进程从内存换到磁盘时决定哪些页面可以从内存中移除）</p>
+<p><strong>写时复制</strong>：如果一个进程更新了共享的页，则生成一个该页的副本，这样每个进程都有直接的专用副本，都可以进行读写，这种情况下只有实际修改的数据页面需要复制。</p>
+<h3 id="共享库"><a href="#共享库" class="headerlink" title="共享库"></a>共享库</h3><p>现代操作系统中，很多大型库被众多进程使用，把所有的这些库静态地与磁盘上的每一个程序绑定会使它们变得更加强大。</p>
+<p>通常使用共享库（Windows中的动态链接库）来实现，在目标文件中调用了但是没有定义的函数称为未定义外部函数（例如printf），链接器会在库中寻找这些未定义的外部函数，如果找到了，则将它们加载到可执行二进制文件中，链接器完成任务后，一个可执行二进制文件被写入磁盘，其中包含了所有的函数，在库中定义但是没有被调用的函数不会加载进去。链接器不是加载被调用的函数，而是加载一小段能够在运行时绑定被调用函数的存根例程，共享库可以和程序一起加载，或者在第一次调用时加载，根据需要加载共享库对应的页面。</p>
+<blockquote>
+<p>共享库最好编译成位置无关的代码，总是使用相对地址，这样就不存在共享时，进行地址跳转的问题。</p>
+</blockquote>
+<h3 id="内存映射文件"><a href="#内存映射文件" class="headerlink" title="内存映射文件"></a>内存映射文件</h3><p>将一个文件映射到其虚拟地址空间的一部分。</p>
+<h3 id="清除策略"><a href="#清除策略" class="headerlink" title="清除策略"></a>清除策略</h3><p>如果缺页中断时每个页框都被占用，并且都被修改过，则需要先把旧页面写回磁盘，才能加载新的页面。为了保证有足够多的空闲页框，因此很多分页系统中有一个<strong>分页守护进程</strong>定期检查内存的状态，如果空闲页框过少，通过预定的页面置换算法选择页面换成内存。</p>
+<h3 id="虚拟内存接口"><a href="#虚拟内存接口" class="headerlink" title="虚拟内存接口"></a>虚拟内存接口</h3><h2 id="实现的问题"><a href="#实现的问题" class="headerlink" title="实现的问题"></a>实现的问题</h2><p>虚拟内存系统主要在第二次机会算法与老化算法，局部页面分配与全局页面分配，请求调页与预先调页之间进行选择。</p>
+<h3 id="与分页有关的工作"><a href="#与分页有关的工作" class="headerlink" title="与分页有关的工作"></a>与分页有关的工作</h3><ul>
+<li>进程创建时：确定程序和数据初始时有多大，并创建一个页表，并且初始化交换区。</li>
+<li>进程执行时：当调度一个进程时，必须为新进程重置MMU，刷新TLB，新进程的页表必须称为当前页表。</li>
+<li>缺页中断时：操作系统必须通过读硬件寄存器来确定是哪个虚拟地址造成了缺页中断，并在磁盘上对该页面进行定位，并找到合适的页框来存放新页面。最后还要回退程序计数器，使程序计数器指向引起缺页中断的指令，并重新执行该指令。</li>
+<li>进程终止时：操作系统需要释放进程的页表，页面和页面在硬盘上所占用的空间。如果某些页面是共享的，则在最后一个进程终止时才可以释放。</li>
+</ul>
+<h3 id="缺页中断处理"><a href="#缺页中断处理" class="headerlink" title="缺页中断处理"></a>缺页中断处理</h3><ul>
+<li>硬件陷入内核，在堆栈中保存程序计数器。</li>
+<li>启动一个汇编代码例程保存通用寄存器和其他易失的信息，以免被操作系统破坏。</li>
+<li>当操作系统发现一个缺页中断时，尝试发现需要哪个虚拟页面。</li>
+<li>知道虚拟地址后，操作系统检查这个地址是否有效，并检查存取与保护是否一致，如果不一致，向进程发出一个信号或杀掉进程。否则检查是否有空闲页框，没有则通过页面置换算法寻找一个页面来淘汰。</li>
+<li>如果选择的页框“脏”了，把该页写回磁盘，并发生一次上下文切换，挂起产生缺页中断的进程，让其他进程运行直至磁盘传输结束。该页框被标记为忙，避免被其他进程占用。</li>
+<li>一旦页框“干净”后，操作系统查找所需页面在磁盘上的地址，通过磁盘操作将其装入。（？如何找到磁盘上的地址）</li>
+<li>当磁盘中断发生时，表示该页已经被装入，页表已经更新可以发映它的位置，页框也被标记为正常状态。</li>
+<li>恢复发生缺页中断指令以前的状态，程序计数器重新指向这条指令。</li>
+<li>调度引发缺页中断的进程，操作系统返回调用它的汇编语言例程。</li>
+<li>该例程恢复寄存器和其他状态信息，返回到用户控件继续执行，好像缺页中断没有发生过一样。</li>
+</ul>
+<h3 id="指令备份"><a href="#指令备份" class="headerlink" title="指令备份"></a>指令备份</h3><h3 id="锁定内存中的页面"><a href="#锁定内存中的页面" class="headerlink" title="锁定内存中的页面"></a>锁定内存中的页面</h3><h3 id="后备存储"><a href="#后备存储" class="headerlink" title="后备存储"></a>后备存储</h3><p><strong>静态交换区分页</strong><br>进程启动时，留出与整个进程一样大的交换区，在进程表中记录进程对应的交换区的磁盘地址，因为交换区与进程的大小一样，只需要把页面的偏移量加到交换区的开始地址即可。（进程启动后可能会变，因此最好为正文，数据和堆栈分别保留交换区，并允许这些交换区在磁盘上多于一个块。）<br><strong>动态备份分页</strong><br>在页面换出时为其分配磁盘空间，并在换入时回收磁盘空间，内存中的每个页面都需要记录相应的磁盘地址。</p>
+<p><img src="/images/os-memory-exchange.svg" alt="内存交换模式"></p>
+<h3 id="策略和机制的分离"><a href="#策略和机制的分离" class="headerlink" title="策略和机制的分离"></a>策略和机制的分离</h3><p><img src="/images/%E7%BC%BA%E9%A1%B5%E4%B8%AD%E6%96%AD.jpg" alt="缺页中断示意"></p>
+<h2 id="分段"><a href="#分段" class="headerlink" title="分段"></a>分段</h2><p>一个编译器在编译过程中会建立许多表，例如：</p>
+<ul>
+<li>源程序正文</li>
+<li>符号表，包含变量的名字和属性</li>
+<li>包含用到的所有整型量和浮点常量的表</li>
+<li>语法分析树，包含程序语法分析的结果</li>
+<li>编译器内部过程调用使用的堆栈<br>前4个表随着编译的进行不断地增长，最后一个表在编译过程中以一种不可预见的方式增大和缩小。在一维存储器中，这5个表只能分配到虚拟地址空间中连续的块中。</li>
+</ul>
+<p>一种方式是提供多个互相独立的<strong>段</strong>的地址空间，每个都是从0到一个允许的值，这样程序必须提供两部分地址，一个段号和一个段内地址。</p>
+<table>
+<thead>
+<tr>
+<th>考察点</th>
+<th>分页</th>
+<th>分段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>需要程序员了解正在使用这种技术吗？</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>存在多少线性地址空间？</td>
+<td>1</td>
+<td>许多</td>
+</tr>
+<tr>
+<td>整个地址空间可以超出物理存储器的大小吗？</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>过程和数据可以被区分分别保护吗？</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>其大小浮动的表可以很容易提供吗？</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>用户间过程的共享方便吗？</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>为什么发明这种技术</td>
+<td>为了得到大的线性地址空间而不必购买更大的物理存储器</td>
+<td>为了使程序和数据可以被划分为逻辑上独立的地址空间并且有助于共享和保护</td>
+</tr>
+</tbody></table>
+<h3 id="纯分段的实现"><a href="#纯分段的实现" class="headerlink" title="纯分段的实现"></a>纯分段的实现</h3><p>页是定长的而段不是，系统运行一段时间后内存被划分为许多块，一些包含段，一些成了空闲区（外部碎片）。可以通过内存紧缩来解决。</p>
+<h3 id="分段和分页结合：MULTICS"><a href="#分段和分页结合：MULTICS" class="headerlink" title="分段和分页结合：MULTICS"></a>分段和分页结合：MULTICS</h3><p>MULTICS由36位虚拟地址和24位物理地址，最多有$2^{18}$个段，每个段有$2^6$个页面，每个页面具有$2^{10}$个字节。</p>
+<p><img src="/images/MULTICS%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98.svg" alt="MULTICS虚拟内存的示意图"></p>
+<p><sub>上图为MULTICS的内存示意图，红色的线表示为物理地址，从页表到页面时由于每个段都是有64个页面的因此通过18位的物理地址补全000000即可找到页面的物理地址，同理从页面到页的地址时只需要14位即可，因为页面的低10位也是位0.</sub></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OS/" rel="tag"># OS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/04/15/2019-04-15-Spring%E5%9F%BA%E7%A1%80%E7%AC%94%E8%AE%B0/" rel="prev" title="Spring基础笔记">
+      <i class="fa fa-chevron-left"></i> Spring基础笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/05/01/2019-05-01-%E7%8E%B0%E4%BB%A3%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0-4%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/" rel="next" title="现代操作系统笔记-4文件系统">
+      现代操作系统笔记-4文件系统 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A0%E5%AD%98%E5%82%A8%E5%99%A8%E6%8A%BD%E8%B1%A1"><span class="nav-number">1.1.</span> <span class="nav-text">无存储器抽象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E5%99%A8%E7%9A%84%E6%8A%BD%E8%B1%A1%EF%BC%9A%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="nav-number">1.2.</span> <span class="nav-text">存储器的抽象：地址空间</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="nav-number">1.2.1.</span> <span class="nav-text">地址空间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%A4%E6%8D%A2%E6%8A%80%E6%9C%AF"><span class="nav-number">1.2.2.</span> <span class="nav-text">交换技术</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A9%BA%E9%97%B2%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">1.2.3.</span> <span class="nav-text">空闲内存管理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98"><span class="nav-number">1.3.</span> <span class="nav-text">虚拟内存</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E9%A1%B5"><span class="nav-number">1.3.1.</span> <span class="nav-text">分页</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A1%B5%E8%A1%A8"><span class="nav-number">1.3.2.</span> <span class="nav-text">页表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A0%E9%80%9F%E5%88%86%E9%A1%B5%E8%BF%87%E7%A8%8B"><span class="nav-number">1.3.3.</span> <span class="nav-text">加速分页过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%92%88%E5%AF%B9%E5%A4%A7%E5%86%85%E5%AD%98%E7%9A%84%E9%A1%B5%E8%A1%A8"><span class="nav-number">1.3.4.</span> <span class="nav-text">针对大内存的页表</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="nav-number">1.4.</span> <span class="nav-text">页面置换算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E4%BC%98%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="nav-number">1.4.1.</span> <span class="nav-text">最优页面置换算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E8%BF%91%E6%9C%AA%E4%BD%BF%E7%94%A8%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95%EF%BC%88NRU%EF%BC%89"><span class="nav-number">1.4.2.</span> <span class="nav-text">最近未使用页面置换算法（NRU）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%88%E8%BF%9B%E5%85%88%E5%87%BA%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95%EF%BC%88FIFO%EF%BC%89"><span class="nav-number">1.4.3.</span> <span class="nav-text">先进先出页面置换算法（FIFO）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E6%AC%A1%E6%9C%BA%E4%BC%9A%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="nav-number">1.4.4.</span> <span class="nav-text">第二次机会页面置换算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%92%9F%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="nav-number">1.4.5.</span> <span class="nav-text">时钟页面置换算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E8%BF%91%E6%9C%80%E5%B0%91%E4%BD%BF%E7%94%A8%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95%EF%BC%88LRU%EF%BC%89"><span class="nav-number">1.4.6.</span> <span class="nav-text">最近最少使用页面置换算法（LRU）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9FLRU"><span class="nav-number">1.4.7.</span> <span class="nav-text">用软件模拟LRU</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E9%9B%86%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="nav-number">1.4.8.</span> <span class="nav-text">工作集页面置换算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E9%9B%86%E6%97%B6%E9%92%9F%E9%A1%B5%E9%9D%A2%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95"><span class="nav-number">1.4.9.</span> <span class="nav-text">工作集时钟页面置换算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%AE%E6%8D%A2%E7%AE%97%E6%B3%95%E5%B0%8F%E8%8A%82"><span class="nav-number">1.4.10.</span> <span class="nav-text">置换算法小节</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E9%A1%B5%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E8%AE%BE%E8%AE%A1%E9%97%AE%E9%A2%98"><span class="nav-number">1.5.</span> <span class="nav-text">分页系统中的设计问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%80%E9%83%A8%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5%E4%B8%8E%E5%85%A8%E5%B1%80%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5"><span class="nav-number">1.5.1.</span> <span class="nav-text">局部分配策略与全局分配策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E6%8E%A7%E5%88%B6"><span class="nav-number">1.5.2.</span> <span class="nav-text">负载控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A1%B5%E9%9D%A2%E5%A4%A7%E5%B0%8F"><span class="nav-number">1.5.3.</span> <span class="nav-text">页面大小</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E7%A6%BB%E7%9A%84%E6%8C%87%E4%BB%A4%E7%A9%BA%E9%97%B4%E5%92%8C%E6%95%B0%E6%8D%AE%E7%A9%BA%E9%97%B4"><span class="nav-number">1.5.4.</span> <span class="nav-text">分离的指令空间和数据空间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B1%E4%BA%AB%E9%A1%B5%E9%9D%A2"><span class="nav-number">1.5.5.</span> <span class="nav-text">共享页面</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B1%E4%BA%AB%E5%BA%93"><span class="nav-number">1.5.6.</span> <span class="nav-text">共享库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%96%87%E4%BB%B6"><span class="nav-number">1.5.7.</span> <span class="nav-text">内存映射文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B8%85%E9%99%A4%E7%AD%96%E7%95%A5"><span class="nav-number">1.5.8.</span> <span class="nav-text">清除策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E6%8E%A5%E5%8F%A3"><span class="nav-number">1.5.9.</span> <span class="nav-text">虚拟内存接口</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.6.</span> <span class="nav-text">实现的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8E%E5%88%86%E9%A1%B5%E6%9C%89%E5%85%B3%E7%9A%84%E5%B7%A5%E4%BD%9C"><span class="nav-number">1.6.1.</span> <span class="nav-text">与分页有关的工作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%BA%E9%A1%B5%E4%B8%AD%E6%96%AD%E5%A4%84%E7%90%86"><span class="nav-number">1.6.2.</span> <span class="nav-text">缺页中断处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8C%87%E4%BB%A4%E5%A4%87%E4%BB%BD"><span class="nav-number">1.6.3.</span> <span class="nav-text">指令备份</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%81%E5%AE%9A%E5%86%85%E5%AD%98%E4%B8%AD%E7%9A%84%E9%A1%B5%E9%9D%A2"><span class="nav-number">1.6.4.</span> <span class="nav-text">锁定内存中的页面</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E5%A4%87%E5%AD%98%E5%82%A8"><span class="nav-number">1.6.5.</span> <span class="nav-text">后备存储</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AD%96%E7%95%A5%E5%92%8C%E6%9C%BA%E5%88%B6%E7%9A%84%E5%88%86%E7%A6%BB"><span class="nav-number">1.6.6.</span> <span class="nav-text">策略和机制的分离</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%AE%B5"><span class="nav-number">1.7.</span> <span class="nav-text">分段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%AF%E5%88%86%E6%AE%B5%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.7.1.</span> <span class="nav-text">纯分段的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E6%AE%B5%E5%92%8C%E5%88%86%E9%A1%B5%E7%BB%93%E5%90%88%EF%BC%9AMULTICS"><span class="nav-number">1.7.2.</span> <span class="nav-text">分段和分页结合：MULTICS</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="wjainng"
+      src="/images/mountain.jpg">
+  <p class="site-author-name" itemprop="name">wjainng</p>
+  <div class="site-description" itemprop="description">学而不思则罔思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wjainng</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

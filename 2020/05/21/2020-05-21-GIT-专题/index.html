@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="概述Git是一个开源的分布式版本控制系统。 基本命令git init &lt;directory&gt; 当前目录初始化git本地仓库 git clone &lt;remote_url&gt; 基于远程仓库克隆至本地  git add -A|&lt;fileName&gt;|&lt;directory&gt; 增加所有&#x2F;文件&#x2F;目录到暂存区  git rm --cached target -r 将指">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GIT-专题">
+<meta property="og:url" content="http://example.com/2020/05/21/2020-05-21-GIT-%E4%B8%93%E9%A2%98/index.html">
+<meta property="og:site_name" content="WJAINNG">
+<meta property="og:description" content="概述Git是一个开源的分布式版本控制系统。 基本命令git init &lt;directory&gt; 当前目录初始化git本地仓库 git clone &lt;remote_url&gt; 基于远程仓库克隆至本地  git add -A|&lt;fileName&gt;|&lt;directory&gt; 增加所有&#x2F;文件&#x2F;目录到暂存区  git rm --cached target -r 将指">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/git_three_tree.svg">
+<meta property="og:image" content="http://example.com/images/git-branch.svg">
+<meta property="article:published_time" content="2020-05-21T15:27:07.000Z">
+<meta property="article:modified_time" content="2020-09-16T15:15:44.779Z">
+<meta property="article:author" content="wjainng">
+<meta property="article:tag" content="GIT 专题">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/git_three_tree.svg">
+
+<link rel="canonical" href="http://example.com/2020/05/21/2020-05-21-GIT-%E4%B8%93%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>GIT-专题 | WJAINNG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">WJAINNG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/05/21/2020-05-21-GIT-%E4%B8%93%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          GIT-专题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-05-21 23:27:07" itemprop="dateCreated datePublished" datetime="2020-05-21T23:27:07+08:00">2020-05-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Git是一个开源的分布式版本控制系统。</p>
+<h2 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h2><pre><code>git init &lt;directory&gt; 当前目录初始化git本地仓库
+git clone &lt;remote_url&gt; 基于远程仓库克隆至本地
+
+git add -A|&lt;fileName&gt;|&lt;directory&gt; 增加所有/文件/目录到暂存区
+
+git rm --cached target -r 将指定的target移除暂存区
+
+git commit -am remark 将所有文件提交，remark为描述
+git commit file -m remark 将file提交，remark为描述
+
+git reset --mixed|soft|hard HEAD~[1,2,3] 撤回commit到前一个，前2个提交.
+git checkout -- filename 会撤销对filename的修改，直接用最新的版本替换
+git commit --amend 只想更改注释时使用
+
+git branch -avv 查看当前分支
+git branch &lt;branch name&gt; 基于当前分支创建新的分支
+git branch &lt;branch name&gt; &lt;commit id&gt; 基于提交创建分支
+git branch -d &lt;branch name&gt; 删除分支
+git branch &lt;new branch name&gt; &lt;base branch name&gt; 基于base创建new
+git checkout &lt;branch name&gt; 切换到branch name
+git checkout -b bf origin/serverfix 基于远程serverfix创建bf分支并切换到bf分支
+git checkout --track origin/serverfix 类似上面的命令只是新建的分支也是serverfix
+git merge &lt;target&gt; 将target分支合并到当前分支
+
+git remote -v 查看远程分支
+git remote add origin &lt;remote url&gt; 增加远程地址
+git remote remove origin 删除远程地址
+git push -u origin master 上传分支到远程(--set-upstream-to)第一次需要使用这种方式
+git push -u origin localbranch:remobebranch 当本地和远程的分支名不一样时使用local:remote的形式 
+git push origin/master:
+git branch -u origin/master master 把本地分支master关联到远程分支origin/master
+git push origin --delete branch 删除远程branch分支
+
+git pull 想当于git fetch + git merge 从远程拉取数据并合并到当前分支
+
+git tag 查看tag
+git tag tagName 根据当前分支创建tag
+git tag tagName branchName 根据branchName创建tagName
+git tag -d tagName 删除tagName
+
+git log 查看当前分支log
+git log branchName 查看branchName分支log
+git log --oneline 单行显示日志
+git log branch1..branch2 比较两个分支的差异(显示branch2比branch1多的内容)
+git diff branch1 branch2 fileName 比较两个分支对应fileName的差异
+git log --pretty=format:&#39;%h %s&#39; --graph 以图表形式显示提交网络
+
+git stash 会储藏工作目录的脏的状态，然后工作区会回到之前的状态，可以进行分支切换。（后续可以重新应用这些改动）
+git stash list 可以查看所有的暂存信息
+git stash apply [stashname] 可以重新应用暂存的内容
+git stash drop [stashname] 删除暂存内容
+git stash pop 应用暂存内容然后从栈上扔掉它
+
+git --help 查看git的命令详情
+git help commit 查看commit命令的详情(git commit --help, man git-commit)这三个命令是一样的效果
+git config --list 查看配置信息</code></pre>
+<blockquote>
+<p>说明：git reset 默认为mixed：<strong>不删除</strong>工作空间改动代码，<strong>撤销</strong>commit和add操作。soft：<strong>不删除</strong>工作空间改动代码，<strong>撤销</strong>commit，<strong>不撤销</strong>add操作。hard：<strong>删除</strong>工作空间改动代码，<strong>撤销</strong>commit和add操作。<br><br>大部分命令默认是第二个参数是当前分支，除非指定第二个参数。<br><br>git init –bare 用来创建裸仓库，会直接把.git目录下的内容显示出来（裸仓库不包含工作区因此不能执行git相关的命令）一般远程仓库建议用裸仓库，这样就不能在远程直接修改文件了，减少冲突的几率。</p>
+</blockquote>
+<h2 id="底层原理"><a href="#底层原理" class="headerlink" title="底层原理"></a>底层原理</h2><ol>
+<li><p>GIT提交对象</p>
+<p>每一次提交为当前版本的一个快照，存储的内容为：一个顶级的树对象，上一次提交的对象hash，提交者的用户名，邮箱，提交时间以及评论。</p>
+</li>
+<li><p>GIT树对象</p>
+<p>包含多个文件名称与其对应的hash，以及其他树对象的引用。类似于文件系统的文件夹。</p>
+</li>
+<li><p>GIT存储对象</p>
+<p>存储实际的文件内容</p>
+</li>
+<li><p>GIT引用</p>
+<p>当执行git branch branchName创建分支时，就是基于当前分支最新的提交创建一个应用文件，保存在.git/refs/heads下(存在分支引用，远程分支引用，标签引用三种类型)</p>
+</li>
+</ol>
+<p><img src="/images/git_three_tree.svg" alt="git中的三棵树"></p>
+<p>通过这三颗树可以很好的理解reset和checkout命令的影响</p>
+<table>
+<thead>
+<tr>
+<th>&nbsp;</th>
+<th>HEAD</th>
+<th>索引</th>
+<th>工作区间</th>
+<th>工作区间是否安全</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>commit级别</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>reset –soft [commit]</td>
+<td>REF</td>
+<td>否</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>reset [commit]</td>
+<td>REF</td>
+<td>是</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>reset –hard [commit]</td>
+<td>REF</td>
+<td>是</td>
+<td>是</td>
+<td><font color=red><strong>否</strong></font></td>
+</tr>
+<tr>
+<td>checkout [commit]</td>
+<td>HEAD</td>
+<td>是</td>
+<td>是</td>
+<td>是</td>
+</tr>
+<tr>
+<td>文件级别</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>reset (commit) [file]</td>
+<td>否</td>
+<td>是</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>checkout (commit) [file]</td>
+<td>否</td>
+<td>是</td>
+<td>是</td>
+<td><font color=red><strong>否</strong></font></td>
+</tr>
+</tbody></table>
+<p><em>reset和checkout的区别之一是reset会更改分支的指向，而checkout只会更改head的指向</em></p>
+<blockquote>
+<p>git cat-file -p hash 可以查看对应hash文件中的内容。<br>git hash-object -w fileName 相当于git add fileName把文件写入。<br>每次修改文件后提交，至少会新增一个commit对象，一个树对象，一个文件对象。<br>(find .git/objects -type f 查看所有的文件)<br>git ls-tree -r HEAD 查看最新版本的内容<br>git ls-files -s 查看add但是没有commit的内容</p>
+</blockquote>
+<h2 id="GIT支持的协议"><a href="#GIT支持的协议" class="headerlink" title="GIT支持的协议"></a>GIT支持的协议</h2><ol>
+<li><p>Local（本地协议）</p>
+<p>基于文件系统共享，只能在局域网使用，速度慢。使用文件系统对应的权限。</p>
+</li>
+<li><p>ssh</p>
+<p>搭建简单，通过ssh访问是安全的，权限体系不灵活，必须提供操作系统账号密码，无法创建只读权限。</p>
+</li>
+<li><p>http</p>
+<p>依赖于web容器，搭建复杂一些。又分为智能http和哑http协议（其中哑协议是只读的，相对于提供一个静态文件服务）。</p>
+</li>
+<li><p>git</p>
+<p>无授权机制，需要开启一个新的守护进程，传输速度最快。</p>
+</li>
+</ol>
+<h2 id="分支管理"><a href="#分支管理" class="headerlink" title="分支管理"></a>分支管理</h2><p>下图是一个典型的分支管理方式，master保存最新的代码，功能在feture分支开发，开发完后提交到master，有master创建release分支进行集成测试及发布，最终合并到master和打发布的标签。<br><img src="/images/git-branch.svg" alt="git 分支管理"></p>
+<p>git merge source（合并source到当前分支）为了提交树更容易看懂，可以通过rebase进行合并，前提是source分支没有提交到远程，否则会引发其他麻烦。</p>
+<p>git rebase master （当前分支dev基于master分支进行rebase）<br>git checkout master 切换到master分支<br>git merge dev 合并dev到master分支，会进行fast forward，提交树会变成一条直线。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/GIT-%E4%B8%93%E9%A2%98/" rel="tag"># GIT 专题</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/12/22/2019-12-22-Spring-MVC-%E7%AC%94%E8%AE%B0/" rel="prev" title="Spring MVC 笔记">
+      <i class="fa fa-chevron-left"></i> Spring MVC 笔记
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/05/24/2020-05-24-Maven-%E4%B8%93%E9%A2%98/" rel="next" title="Maven-专题">
+      Maven-专题 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4"><span class="nav-number">2.</span> <span class="nav-text">基本命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">底层原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GIT%E6%94%AF%E6%8C%81%E7%9A%84%E5%8D%8F%E8%AE%AE"><span class="nav-number">4.</span> <span class="nav-text">GIT支持的协议</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E6%94%AF%E7%AE%A1%E7%90%86"><span class="nav-number">5.</span> <span class="nav-text">分支管理</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="wjainng"
+      src="/images/mountain.jpg">
+  <p class="site-author-name" itemprop="name">wjainng</p>
+  <div class="site-description" itemprop="description">学而不思则罔思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wjainng</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

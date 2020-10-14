@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.ico.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.ico.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="背景因redis集群需要扩容,想了解下集群扩容后会有多少请求会请求失败,分析了下客户端连接redis的源代码. 代码分析客户端是通过ShardedJedisSentinelPool获取连接进行操作,从构造函数开始看. 123456789101112131415public ShardedJedisSentinelPool(List&lt;String&gt; masters, Set&lt;Str">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ShardedJedis分析">
+<meta property="og:url" content="http://example.com/2016/10/21/2016-10-21-ShardedJedis%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="WJAINNG">
+<meta property="og:description" content="背景因redis集群需要扩容,想了解下集群扩容后会有多少请求会请求失败,分析了下客户端连接redis的源代码. 代码分析客户端是通过ShardedJedisSentinelPool获取连接进行操作,从构造函数开始看. 123456789101112131415public ShardedJedisSentinelPool(List&lt;String&gt; masters, Set&lt;Str">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-10-21T05:46:41.000Z">
+<meta property="article:modified_time" content="2020-09-16T15:15:44.750Z">
+<meta property="article:author" content="wjainng">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2016/10/21/2016-10-21-ShardedJedis%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>ShardedJedis分析 | WJAINNG</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">WJAINNG</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2016/10/21/2016-10-21-ShardedJedis%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ShardedJedis分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-10-21 13:46:41" itemprop="dateCreated datePublished" datetime="2016-10-21T13:46:41+08:00">2016-10-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>因redis集群需要扩容,想了解下集群扩容后会有多少请求会请求失败,分析了下客户端连接redis的源代码.</p>
+<h2 id="代码分析"><a href="#代码分析" class="headerlink" title="代码分析"></a>代码分析</h2><p>客户端是通过ShardedJedisSentinelPool获取连接进行操作,从构造函数开始看.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ShardedJedisSentinelPool</span><span class="params">(List&lt;String&gt; masters, Set&lt;String&gt; sentinels,</span></span></span><br><span class="line"><span class="function"><span class="params">                                    <span class="keyword">final</span> GenericObjectPoolConfig poolConfig, <span class="keyword">int</span> timeout,</span></span></span><br><span class="line"><span class="function"><span class="params">                                    <span class="keyword">final</span> String password, <span class="keyword">final</span> <span class="keyword">int</span> database)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">this</span>.poolConfig = poolConfig;</span><br><span class="line">   <span class="keyword">this</span>.timeout = timeout;</span><br><span class="line">   <span class="keyword">this</span>.password = password;</span><br><span class="line">   <span class="keyword">this</span>.database = database;</span><br><span class="line">    <span class="comment">//初始化哨兵信息</span></span><br><span class="line">   List&lt;HostAndPort&gt; masterList = initSentinels(sentinels, masters);</span><br><span class="line">   <span class="comment">//初始化连接池</span></span><br><span class="line">   initPool(masterList);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> List&lt;HostAndPort&gt; <span class="title">initSentinels</span><span class="params">(Set&lt;String&gt; sentinels, <span class="keyword">final</span> List&lt;String&gt; masters)</span></span></span><br></pre></td></tr></table></figure>
+
+
+<p>initSentinels方法通过哨兵和传入的master名字获取到所有master对应的ip和端口号,供后续初始化连接池使用,同时启动线程MasterListener监听哨兵,一旦有主备切换则会重新初始化连接池.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initPool</span><span class="params">(List&lt;HostAndPort&gt; masters)</span> </span>&#123;</span><br><span class="line">   <span class="comment">//MasterListener也会调用该方法</span></span><br><span class="line">   <span class="keyword">if</span> (!equals(currentHostMasters, masters)) &#123;</span><br><span class="line">       StringBuffer sb = <span class="keyword">new</span> StringBuffer();</span><br><span class="line">       <span class="keyword">for</span> (HostAndPort master : masters) &#123;</span><br><span class="line">           sb.append(master.toString());</span><br><span class="line">           sb.append(<span class="string">&quot; &quot;</span>);</span><br><span class="line">       &#125;</span><br><span class="line">       log.info(<span class="string">&quot;Created ShardedJedisPool to master at [&quot;</span> + sb.toString() + <span class="string">&quot;]&quot;</span>);</span><br><span class="line">       List&lt;JedisShardInfo&gt; shardMasters = makeShardInfoList(masters);</span><br><span class="line">       initPool(poolConfig, <span class="keyword">new</span> ShardedJedisFactory(shardMasters, Hashing.MURMUR_HASH, <span class="keyword">null</span>));</span><br><span class="line">       currentHostMasters = masters;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> List&lt;JedisShardInfo&gt; <span class="title">makeShardInfoList</span><span class="params">(List&lt;HostAndPort&gt; masters)</span> </span>&#123;</span><br><span class="line">   List&lt;JedisShardInfo&gt; shardMasters = <span class="keyword">new</span> ArrayList&lt;JedisShardInfo&gt;();</span><br><span class="line">   <span class="keyword">for</span> (HostAndPort master : masters) &#123;</span><br><span class="line">       JedisShardInfo jedisShardInfo = <span class="keyword">new</span> JedisShardInfo(master.getHost(), master.getPort(), timeout);</span><br><span class="line">       jedisShardInfo.setPassword(password);</span><br><span class="line"></span><br><span class="line">       shardMasters.add(jedisShardInfo);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> shardMasters;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>再通过initPool进行连接池初始化,其中通过master组装为JedisShardInfo(name属性没有值,跟后续虚拟节点的hash有关),然后再看ShardedJedisFactory.makeObject,通过此方法创建实际的连接.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> PooledObject&lt;ShardedJedis&gt; <span class="title">makeObject</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">       ShardedJedis jedis = <span class="keyword">new</span> ShardedJedis(shards, algo, keyTagPattern);</span><br><span class="line">       <span class="keyword">return</span> <span class="keyword">new</span> DefaultPooledObject&lt;ShardedJedis&gt;(jedis);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>默认的Hash算法为MurmurHash.其中shards为根据之前master对应的信息主要有IP,端口,密码,超时时间等值.</p>
+<p>在ShardedJedis的父类Sharded的构造函数中可以看到最后使用了一致性hash并且通过虚拟节点达到当节点出现故障时数据的均衡分布.Sharded.java片段代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//默认权重</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> DEFAULT_WEIGHT = <span class="number">1</span>;</span><br><span class="line"><span class="comment">//虚拟节点与真实节点的对应关系</span></span><br><span class="line"><span class="keyword">private</span> TreeMap&lt;Long, S&gt; nodes;</span><br><span class="line"><span class="comment">//Hash算法</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Hashing algo;</span><br><span class="line"><span class="comment">//真实节点与连接的对应关系</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Map&lt;ShardInfo&lt;R&gt;, R&gt; resources = <span class="keyword">new</span> LinkedHashMap&lt;ShardInfo&lt;R&gt;, R&gt;();</span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Sharded</span><span class="params">(List&lt;S&gt; shards, Hashing algo, Pattern tagPattern)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.algo = algo;</span><br><span class="line">    <span class="keyword">this</span>.tagPattern = tagPattern;</span><br><span class="line">    initialize(shards);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(List&lt;S&gt; shards)</span> </span>&#123;</span><br><span class="line">    nodes = <span class="keyword">new</span> TreeMap&lt;Long, S&gt;();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i != shards.size(); ++i) &#123;</span><br><span class="line">     <span class="keyword">final</span> S shardInfo = shards.get(i);</span><br><span class="line">     <span class="keyword">if</span> (shardInfo.getName() == <span class="keyword">null</span>) <span class="keyword">for</span> (<span class="keyword">int</span> n = <span class="number">0</span>; n &lt; <span class="number">160</span> * shardInfo.getWeight(); n++) &#123;</span><br><span class="line">       nodes.put(<span class="keyword">this</span>.algo.hash(<span class="string">&quot;SHARD-&quot;</span> + i + <span class="string">&quot;-NODE-&quot;</span> + n), shardInfo);</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">else</span> <span class="keyword">for</span> (<span class="keyword">int</span> n = <span class="number">0</span>; n &lt; <span class="number">160</span> * shardInfo.getWeight(); n++) &#123;</span><br><span class="line">       nodes.put(<span class="keyword">this</span>.algo.hash(shardInfo.getName() + <span class="string">&quot;*&quot;</span> + shardInfo.getWeight() + n), shardInfo);</span><br><span class="line">     &#125;</span><br><span class="line">     resources.put(shardInfo, shardInfo.createResource());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>从initialize方法可以看出,默认情况下(权重为1)每一个物理节点(ShardInfo)会产生160个虚拟节点,同时把虚拟节点的hash值和ShardInfo的对应关系存储在nodes中,同时把ShardInfo和redis的连接对应关系存储在resources中.</p>
+<blockquote>
+<p>**注意:**如果shardInfo没有指定名称,则物理节点是根据master的顺序进行hash的,后续如果新增节点时需要把新的master放入旧master列表的后端,否则会导致节点混乱.(指定名称可以避免此情况)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> R <span class="title">getShard</span><span class="params">(String key)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> resources.get(getShardInfo(key));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> S <span class="title">getShardInfo</span><span class="params">(<span class="keyword">byte</span>[] key)</span> </span>&#123;</span><br><span class="line">    SortedMap&lt;Long, S&gt; tail = nodes.tailMap(algo.hash(key));</span><br><span class="line">    <span class="keyword">if</span> (tail.isEmpty()) &#123;</span><br><span class="line">     <span class="keyword">return</span> nodes.get(nodes.firstKey());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> tail.get(tail.firstKey());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从上面的代码可以看出,通过key获取连接时,先根据key找到对应的节点(getShardInfo),默认找到比key对应hash值大的第一个节点,如果没找到则返回节点列表中的第一个,然后再获取对应的连接.</p>
+<h2 id="一致性Hash"><a href="#一致性Hash" class="headerlink" title="一致性Hash"></a>一致性Hash</h2><p>从上面的Sharded类可以看出使用了一致性hash,顺便复习下一致性hash.</p>
+<p>一致性Hash提出了在动态变化的cache环境中,hash算法应该满足下面4个适应条件:</p>
+<ol>
+<li>均衡性:希望结果尽可能分布到所有的缓存中.</li>
+<li>单调性:当有新的缓冲加入系统时,能保证原有分配的内容被映射到原有的或者新的缓存中,而不是旧的其他缓存中.</li>
+<li>分散性:在分布式环境中,终端可能看不到所有的缓存,只能看到一部分,可能导致相同的内容被不同的终端映射到不同的缓存区.好的hash算法应该避免不一致的情况发生.</li>
+<li>负载:是从另一个角度看待分散性问题,对于一个特定的缓存区可能被不同的用户映射为不同的内容,该情况也应当避免.</li>
+</ol>
+<p>一般的hash算法是不满足单调性的,当增加或者减少节点时,导致hash值会发生变化.</p>
+<h3 id="hash-回环"><a href="#hash-回环" class="headerlink" title="hash 回环"></a>hash 回环</h3><p>hash值都是固定长度的,可以通过一个回环来表示所有的hash值.在一致性hash中,hash值的长度与节点数无关.<br>如下图所示</p>
+<h3 id="映射"><a href="#映射" class="headerlink" title="映射"></a>映射</h3><p>hash的目的是把对象映射到对应的缓存中,一致性hash,会把节点和对象分别映射到回环中对应的hash值节点上,然后再顺时针找到大于等于对象hash值对应的节点.</p>
+<blockquote>
+<p>添加和删除节点时只会影响到比删除或者新增节点的hash值大的下一个节点.</p>
+</blockquote>
+<h3 id="虚拟节点"><a href="#虚拟节点" class="headerlink" title="虚拟节点"></a>虚拟节点</h3><p>在使用虚拟节点前,虽然可以满足一单调性,但是平衡性不够好,例如删除节点时,之前映射到被删除节点的对象全部映射到了删除节点的下一个节点,另外新增节点时也只会减轻其中一个节点的压力.</p>
+<h2 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h2><ol>
+<li>增加节点还是对原有的数据有影响,最好是事先算好节点个数,后续通过调整节点的内存大小达到扩容.涉及到节点需要从机器中进行迁移.</li>
+<li>ShardedJedisSentinelPool中创建名称时没有使用master的名字而是使用对应master的顺序,因此新增节点时不能修改原有的顺序.(当有一组主备失败时,会启动失败,在运行过程中有一组失败时还是会往对应的节点发送请求?)</li>
+<li>考虑分散性虚拟节点最好是按master的名字进行hash.</li>
+</ol>
+<h2 id="参考列表"><a href="#参考列表" class="headerlink" title="参考列表:"></a>参考列表:</h2><p><a target="_blank" rel="noopener" href="http://baike.baidu.com/link?url=xbnm_MpCnN5pnbCsYrJSeXCUp_RWYF2OFo5iAQvs_M4JYuoSGEBcSjmNdCmhji3XfUX8HU9_SQaZc_cl3Ff5MJiez92uwkrqQ5q3P5Wr7mOr4pcyrIS_7Kts2kVl07wi9TQXhNETwepCQs97dAUE4q">一致性Hash</a><br><a target="_blank" rel="noopener" href="https://github.com/warmbreeze/sharded-jedis-sentinel-pool/blob/master/src/main/java/redis/clients/jedis/ShardedJedisSentinelPool.java">ShardedJedisSentinelPool.java</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/05/03/2016-05-03-GC%E8%B0%83%E4%BC%98%E4%B8%80-%E7%AE%80%E4%BB%8B/" rel="prev" title="GC调优一[简介]">
+      <i class="fa fa-chevron-left"></i> GC调优一[简介]
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/05/01/2017-05-01-%E9%9D%9E%E6%9A%B4%E5%8A%9B%E6%B2%9F%E9%80%9A-%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="next" title="非暴力沟通[读书笔记]">
+      非暴力沟通[读书笔记] <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">代码分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7Hash"><span class="nav-number">3.</span> <span class="nav-text">一致性Hash</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#hash-%E5%9B%9E%E7%8E%AF"><span class="nav-number">3.1.</span> <span class="nav-text">hash 回环</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%98%A0%E5%B0%84"><span class="nav-number">3.2.</span> <span class="nav-text">映射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E8%8A%82%E7%82%B9"><span class="nav-number">3.3.</span> <span class="nav-text">虚拟节点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%9D%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">思考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E5%88%97%E8%A1%A8"><span class="nav-number">5.</span> <span class="nav-text">参考列表:</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="wjainng"
+      src="/images/mountain.jpg">
+  <p class="site-author-name" itemprop="name">wjainng</p>
+  <div class="site-description" itemprop="description">学而不思则罔思而不学则殆</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wjainng</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
