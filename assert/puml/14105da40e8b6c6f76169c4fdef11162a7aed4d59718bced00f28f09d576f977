@@ -1,0 +1,17 @@
+@startuml
+package "具体实现\n不稳定 1"<<Frame>> {
+
+}
+package "具体实现\n不稳定 2"<<Frame>> {
+
+}
+package "具体实现\n不稳定 3"<<Frame>> {
+
+}
+package "抽象"<<Frame>>{
+}
+"具体实现\n不稳定 1"..>"抽象"
+"具体实现\n不稳定 2"..>"抽象"
+"具体实现\n不稳定 3"..>"抽象"
+
+@enduml

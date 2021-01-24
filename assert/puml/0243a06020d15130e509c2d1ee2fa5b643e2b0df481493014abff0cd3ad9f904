@@ -1,0 +1,15 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+abstract class AbstractClass {
+    + templateMethod():void
+    {abstract} + operation1():void
+    {abstract} + operation2():void
+}
+
+class ConcreteClass extends AbstractClass {
+    + operation1():void
+    + operation2():void
+}
+@enduml

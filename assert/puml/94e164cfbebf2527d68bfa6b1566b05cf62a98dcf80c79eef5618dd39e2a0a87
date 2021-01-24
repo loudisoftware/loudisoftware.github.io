@@ -1,0 +1,27 @@
+@startuml
+
+package "A"<<Frame>> {
+    class U {
+    }
+    class V {
+    }
+}
+
+package "B"<<Frame>> {
+    class X {
+
+    }
+    interface IY {
+
+    }
+
+    class Y {
+
+    }
+    
+}
+
+U ..> X
+V ..> IY
+Y .> IY
+@enduml

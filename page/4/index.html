@@ -185,6 +185,346 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/03/17/2019-03-17-%E7%8E%B0%E4%BB%A3%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0-2%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/03/17/2019-03-17-%E7%8E%B0%E4%BB%A3%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0-2%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/" class="post-title-link" itemprop="url">现代操作系统笔记-2进程与线程</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-03-17 11:11:19" itemprop="dateCreated datePublished" datetime="2019-03-17T11:11:19+08:00">2019-03-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-01-19 23:31:09" itemprop="dateModified" datetime="2021-01-19T23:31:09+08:00">2021-01-19</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="进程与线程"><a href="#进程与线程" class="headerlink" title="进程与线程"></a>进程与线程</h1><p>操作系统中最核心的概念是<strong>进程</strong>:是对正在运行程序的一个抽象。</p>
+<h2 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h2><h3 id="进程模型"><a href="#进程模型" class="headerlink" title="进程模型"></a>进程模型</h3><blockquote>
+<p>计算机上所有可运行的软件，包括操作系统，被组织成若干<strong>顺序进程</strong>，简称<strong>进程</strong>。一个进程就是一个正在执行程序的实例，包括程序计数器，寄存器和变量的当前值。</p>
+</blockquote>
+<p>一个进程是某种类型的一个活动，包括程序、输入、输出以及状态。</p>
+<h3 id="进程的创建"><a href="#进程的创建" class="headerlink" title="进程的创建"></a>进程的创建</h3><ul>
+<li>系统初始化</li>
+<li>正在运行的程序执行了创建进程的系统调用</li>
+<li>用户请求创建一个新的进程</li>
+<li>一个批处理作业的初始化</li>
+</ul>
+<blockquote>
+<p>UNIX中子进程的初始地址空间是父进程的一个副本，其中不可写的内存区是共享的，可写的内存不共享。或者共享所有内存通过写时复制的方式确保想修改发生在私有内存区域。</p>
+</blockquote>
+<h3 id="进程的终止"><a href="#进程的终止" class="headerlink" title="进程的终止"></a>进程的终止</h3><ul>
+<li>正常退出(自愿的)</li>
+<li>出错退出(自愿的)例如程序中的错误</li>
+<li>严重错误(非自愿)</li>
+<li>被其他进程杀死(非自愿)</li>
+</ul>
+<h3 id="进程的状态"><a href="#进程的状态" class="headerlink" title="进程的状态"></a>进程的状态</h3><ul>
+<li>运行态(该进程实际占用CPU)</li>
+<li>就绪态(可运行,但是没有CPU资源而暂时停止)</li>
+<li>阻塞态(除非某种外部事件发生,否则进程不能运行)</li>
+</ul>
+<p><img src="/images/os-process-status.svg"></p>
+<p><small>上图中的1和2由调度程序引起，当操作系统发现程序不能继续运行下去例如等待I/O等时会发生转换3，当进程等待的外部事件发生时例如I/O完成则发生转换4</small></p>
+<h3 id="进程的实现"><a href="#进程的实现" class="headerlink" title="进程的实现"></a>进程的实现</h3><p>操作系统维护着一张表格（一个结构数组），即<strong>进程表</strong>。每个进程占用一个进程表项（也称为进程控制块）。包括程序计数器、堆栈指针、内存分配情况、所打开文件的状态、账号和调度信息、以及状态转换时必须保存的信息，<strong>保证进程随后能再次启动，像从未被中断过一样</strong>。</p>
+<p>典型进程表项中的一些字段：</p>
+<ul>
+<li>进程管理：寄存器、程序计数器、程序状态字、堆栈指针、进程状态、优先级、调度参数、进程ID、父进程、进程组、信号、进程开始时间、使用CPU时间、子进程的CPU时间、下次定时器时间</li>
+<li>存储管理：正文段指针、数据段指针、堆栈段指针</li>
+<li>文件管理：根目录、工作目录、文件描述符、用户ID、组ID</li>
+</ul>
+<p>与I/O类关联的是一个称作<strong>中断向量</strong>（interrupt vector）的位置（内存底部的固定区域），包含中断服务程序的入口。</p>
+<h3 id="多道程序设计模型"><a href="#多道程序设计模型" class="headerlink" title="多道程序设计模型"></a>多道程序设计模型</h3><p>当内存中有n个进程，如果进程在等待I/O操作的时候和停留在内存中的比为p则n个进程都在等待I/O的概率为<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.439ex" xmlns="http://www.w3.org/2000/svg" width="2.211ex" height="1.967ex" role="img" focusable="false" viewBox="0 -675.5 977.3 869.5"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><g data-mml-node="math"><g data-mml-node="msup"><g data-mml-node="mi"><path data-c="1D45D" d="M23 287Q24 290 25 295T30 317T40 348T55 381T75 411T101 433T134 442Q209 442 230 378L240 387Q302 442 358 442Q423 442 460 395T497 281Q497 173 421 82T249 -10Q227 -10 210 -4Q199 1 187 11T168 28L161 36Q160 35 139 -51T118 -138Q118 -144 126 -145T163 -148H188Q194 -155 194 -157T191 -175Q188 -187 185 -190T172 -194Q170 -194 161 -194T127 -193T65 -192Q-5 -192 -24 -194H-32Q-39 -187 -39 -183Q-37 -156 -26 -148H-6Q28 -147 33 -136Q36 -130 94 103T155 350Q156 355 156 364Q156 405 131 405Q109 405 94 377T71 316T59 280Q57 278 43 278H29Q23 284 23 287ZM178 102Q200 26 252 26Q282 26 310 49T356 107Q374 141 392 215T411 325V331Q411 405 350 405Q339 405 328 402T306 393T286 380T269 365T254 350T243 336T235 326L232 322Q232 321 229 308T218 264T204 212Q178 106 178 102Z"></path></g><g data-mml-node="mi" transform="translate(503, 363) scale(0.707)"><path data-c="1D45B" d="M21 287Q22 293 24 303T36 341T56 388T89 425T135 442Q171 442 195 424T225 390T231 369Q231 367 232 367L243 378Q304 442 382 442Q436 442 469 415T503 336T465 179T427 52Q427 26 444 26Q450 26 453 27Q482 32 505 65T540 145Q542 153 560 153Q580 153 580 145Q580 144 576 130Q568 101 554 73T508 17T439 -10Q392 -10 371 17T350 73Q350 92 386 193T423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 180T152 343Q153 348 153 366Q153 405 129 405Q91 405 66 305Q60 285 60 284Q58 278 41 278H27Q21 284 21 287Z"></path></g></g></g></g></svg></mjx-container>则：<br><mjx-container class="MathJax" jax="SVG" display="true"><svg style="vertical-align: -0.452ex" xmlns="http://www.w3.org/2000/svg" width="20.387ex" height="2.149ex" role="img" focusable="false" viewBox="0 -750 9011.3 950"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="1D436" d="M50 252Q50 367 117 473T286 641T490 704Q580 704 633 653Q642 643 648 636T656 626L657 623Q660 623 684 649Q691 655 699 663T715 679T725 690L740 705H746Q760 705 760 698Q760 694 728 561Q692 422 692 421Q690 416 687 415T669 413H653Q647 419 647 422Q647 423 648 429T650 449T651 481Q651 552 619 605T510 659Q484 659 454 652T382 628T299 572T226 479Q194 422 175 346T156 222Q156 108 232 58Q280 24 350 24Q441 24 512 92T606 240Q610 253 612 255T628 257Q648 257 648 248Q648 243 647 239Q618 132 523 55T319 -22Q206 -22 128 53T50 252Z"></path></g><g data-mml-node="mi" transform="translate(760, 0)"><path data-c="1D443" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path></g><g data-mml-node="mi" transform="translate(1511, 0)"><path data-c="1D448" d="M107 637Q73 637 71 641Q70 643 70 649Q70 673 81 682Q83 683 98 683Q139 681 234 681Q268 681 297 681T342 682T362 682Q378 682 378 672Q378 670 376 658Q371 641 366 638H364Q362 638 359 638T352 638T343 637T334 637Q295 636 284 634T266 623Q265 621 238 518T184 302T154 169Q152 155 152 140Q152 86 183 55T269 24Q336 24 403 69T501 205L552 406Q599 598 599 606Q599 633 535 637Q511 637 511 648Q511 650 513 660Q517 676 519 679T529 683Q532 683 561 682T645 680Q696 680 723 681T752 682Q767 682 767 672Q767 650 759 642Q756 637 737 637Q666 633 648 597Q646 592 598 404Q557 235 548 205Q515 105 433 42T263 -22Q171 -22 116 34T60 167V183Q60 201 115 421Q164 622 164 628Q164 635 107 637Z"></path></g><g data-mml-node="mo" transform="translate(2555.8, 0)"><text data-variant="normal" transform="matrix(1 0 0 -1 0 0)" font-size="884px" font-family="serif">利</text><text data-variant="normal" transform="translate(900, 0) matrix(1 0 0 -1 0 0)" font-size="884px" font-family="serif">用</text><text data-variant="normal" transform="translate(1800, 0) matrix(1 0 0 -1 0 0)" font-size="884px" font-family="serif">率</text><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z" transform="translate(2700, 0)"></path></g><g data-mml-node="mn" transform="translate(6311.6, 0)"><path data-c="31" d="M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z"></path></g><g data-mml-node="mo" transform="translate(7033.8, 0)"><path data-c="2212" d="M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z"></path></g><g data-mml-node="msup" transform="translate(8034, 0)"><g data-mml-node="mi"><path data-c="1D45D" d="M23 287Q24 290 25 295T30 317T40 348T55 381T75 411T101 433T134 442Q209 442 230 378L240 387Q302 442 358 442Q423 442 460 395T497 281Q497 173 421 82T249 -10Q227 -10 210 -4Q199 1 187 11T168 28L161 36Q160 35 139 -51T118 -138Q118 -144 126 -145T163 -148H188Q194 -155 194 -157T191 -175Q188 -187 185 -190T172 -194Q170 -194 161 -194T127 -193T65 -192Q-5 -192 -24 -194H-32Q-39 -187 -39 -183Q-37 -156 -26 -148H-6Q28 -147 33 -136Q36 -130 94 103T155 350Q156 355 156 364Q156 405 131 405Q109 405 94 377T71 316T59 280Q57 278 43 278H29Q23 284 23 287ZM178 102Q200 26 252 26Q282 26 310 49T356 107Q374 141 392 215T411 325V331Q411 405 350 405Q339 405 328 402T306 393T286 380T269 365T254 350T243 336T235 326L232 322Q232 321 229 308T218 264T204 212Q178 106 178 102Z"></path></g><g data-mml-node="mi" transform="translate(503, 413) scale(0.707)"><path data-c="1D45B" d="M21 287Q22 293 24 303T36 341T56 388T89 425T135 442Q171 442 195 424T225 390T231 369Q231 367 232 367L243 378Q304 442 382 442Q436 442 469 415T503 336T465 179T427 52Q427 26 444 26Q450 26 453 27Q482 32 505 65T540 145Q542 153 560 153Q580 153 580 145Q580 144 576 130Q568 101 554 73T508 17T439 -10Q392 -10 371 17T350 73Q350 92 386 193T423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 180T152 343Q153 348 153 366Q153 405 129 405Q91 405 66 305Q60 285 60 284Q58 278 41 278H27Q21 284 21 287Z"></path></g></g></g></g></svg></mjx-container></p>
+<h2 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h2><p>传统操作系统中，每个进程有一个地址空间和一个控制线程。经常存在同一个地址空间中准并行运行多个控制线程的情形，这些线程像分离的进程（共享地址空间除外）。</p>
+<h3 id="线程的使用"><a href="#线程的使用" class="headerlink" title="线程的使用"></a>线程的使用</h3><p>需要多线程的原因是，在许多应用中同时发生多种活动，其中某些活动随着时间的推移会被阻塞，将这些应用程序分解成可以并行运行的多个顺序线程，程序设计模型会变得更简单。</p>
+<p>线程比进程更轻量级，更容易创建和撤销。许多系统中创建线程比创建进程要快10到100倍。</p>
+<p>如果同一个应用程序存在大量的计算和大量的I/O处理，拥有多个线程允许这些活动彼此重叠进行，从而加快应用程序执行的速度。（<em>如果多个线程都是CPU密集型的，则并不能获得性能的增强</em>）</p>
+<p>书中以一种组织web服务器的方式为例，在允许多线程的情况下，一个<em>分派程序</em>（dispatcher）的线程负责从网络中读入工作请求，检查请求后，分派线程调用一个空转的（被阻塞的）<em>工作线程</em>（worker thread），提交请求。分派线程唤醒工作线程，从阻塞状态转换为就绪状态。</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>特性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>多线程</td>
+<td>并行性、阻塞系统调用</td>
+</tr>
+<tr>
+<td>单线程进程</td>
+<td>无并行性、阻塞系统调用</td>
+</tr>
+<tr>
+<td>有限状态机</td>
+<td>并行性、非阻塞系统调用、中断</td>
+</tr>
+</tbody></table>
+<h3 id="经典的线程模型"><a href="#经典的线程模型" class="headerlink" title="经典的线程模型"></a>经典的线程模型</h3><p>进程模型基于两种独立的概念：<em>资源分组处理与执行</em>。将这两种概念分开就引入了“线程”这个概念。进程用于把资源集中到一起而线程则是在CPU上被调度执行的实体。</p>
+<p>线程之间没有保护的原因：</p>
+<ul>
+<li>不可能</li>
+<li>没有必要</li>
+</ul>
+<blockquote>
+<p>因为线程之间是共享地址空间的，另外一个进程由某个用户所拥有，创建多个线程是为了它们之间的合作而不是彼此之间的争斗。</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>每个进程中的内容</th>
+<th>每个线程中的内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>地址空间</td>
+<td>程序计数器</td>
+</tr>
+<tr>
+<td>全局变量</td>
+<td>寄存器</td>
+</tr>
+<tr>
+<td>打开文件</td>
+<td>堆栈</td>
+</tr>
+<tr>
+<td>子进程</td>
+<td>状态</td>
+</tr>
+<tr>
+<td>定时器</td>
+<td></td>
+</tr>
+<tr>
+<td>信号和信号处理程序</td>
+<td></td>
+</tr>
+<tr>
+<td>账户信息</td>
+<td></td>
+</tr>
+</tbody></table>
+<h3 id="POSIX线程"><a href="#POSIX线程" class="headerlink" title="POSIX线程"></a>POSIX线程</h3><p>为实现可移植的线程程序，IEEE定义了线程的标准。它定义的线程包叫做pthread，大部分UNIX系统都支持该标准。</p>
+<p>每一个线程都有一个标志符、一组寄存器（包括程序计数器）和一组存储在结构中的属性。（堆栈大小、调度参数等）</p>
+<p>一些pthread的函数调用</p>
+<table>
+<thead>
+<tr>
+<th>线程调用</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>pthread_create</td>
+<td>创建一个新线程</td>
+</tr>
+<tr>
+<td>pthread_exit</td>
+<td>结束调用的线程</td>
+</tr>
+<tr>
+<td>pthread_join</td>
+<td>等待一个特定的线程退出</td>
+</tr>
+<tr>
+<td>pthread_yield</td>
+<td>释放CPU来运行另外一个线程</td>
+</tr>
+<tr>
+<td>pthread_attr_init</td>
+<td>创建并初始化一个线程的属性结构</td>
+</tr>
+<tr>
+<td>pthread_attr_destroy</td>
+<td>删除一个线程的属性结构</td>
+</tr>
+</tbody></table>
+<h3 id="在用户空间实现线程"><a href="#在用户空间实现线程" class="headerlink" title="在用户空间实现线程"></a>在用户空间实现线程</h3><p>把整个线程包放在用户空间中，内核对线程包一无所知，从内核的角度考虑，就是按正常的方式管理，即单线程进程。线程在一个运行时系统的上层运行，运行时系统是一个管理线程的过程的集合。并且每个进程要有专用的线程表，用来跟踪该进程中的线程，与进程表类似，线程表用来记录各个线程的属性。线程表由运行时系统管理，当一个线程转换到就绪或者阻塞状态时，在该线程表中存放重新启动该线程所需的信息，与内核在进程表中存放进程的信息完全一样。</p>
+<p>优点：</p>
+<ul>
+<li>可以在不支持线程的操作系统上实现多线程。</li>
+<li>线程切换比陷入内核进行切换快一个数量级。（不需要陷入内核，不需要上下文切换，也不需要对内存高速缓存进行刷新）</li>
+<li>允许每个进程有自己定制的调度算法。</li>
+<li>更好的扩展性。（内核空间中内核线程需要一些固定表格空间和堆栈空间，如果内核线程数量非常大，可能出现问题）</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>难实现阻塞系统调用。（要避免被阻塞的线程影响其他线程，但是内核并不知道这一一切,例如缺页中断会导致整个进程阻塞）</li>
+<li>没有时钟中断，不可能用轮转调度的方式调度线程，如果一次线程一开始运行除非主动放弃CPU，否则其他线程就不能运行。</li>
+</ul>
+<blockquote>
+<p>系统调用可以全部改成非阻塞的，但是需要操作系统的支持。例如对键盘的read操作可以只返回0字节而不是阻塞。还有就是如果某个调用会阻塞则提前通知，例如可以通过调用select判断read是否会阻塞，这样可以在read之前先通过select进行判断，类似NIO。<br>线程永久运行的一个可能方案是让运行时系统请求每秒一次的时钟信号（中断）。</p>
+</blockquote>
+<h3 id="在内核中实现线程"><a href="#在内核中实现线程" class="headerlink" title="在内核中实现线程"></a>在内核中实现线程</h3><p>此时不需要运行时系统，每个进程中也没有线程表，相反在内核中有用来记录系统中所有线程的线程表。通过一个系统调用对线程表的更新完成线程的创建或撤销工作。</p>
+<p>所有能够阻塞线程的调用都以系统调用的形式实现，当一个线程阻塞时，内核根据其选择，可以运行同一个进程中的另一个线程或者运行另一个进程中的线程。（用户级线程中，运行时系统时钟运行自己进程中的线程）</p>
+<p>问题：</p>
+<ul>
+<li>多线程创建新的进程时，新进程是拥有与原进程相同数量的线程，还是只有一个线程？应该与新建进程的目的有关系。</li>
+<li>当信号到达时，应该由哪一个线程处理？</li>
+</ul>
+<h3 id="混合实现"><a href="#混合实现" class="headerlink" title="混合实现"></a>混合实现</h3><p>一种将用户级线程的优点和内核级线程的优点结合起来的方法是使用内核级线程，然后将用户级线程和某些或者全部内核线路多路复用起来。</p>
+<p><img src="/images/os-thread-imp.svg"></p>
+<h3 id="调度程序激活机制"><a href="#调度程序激活机制" class="headerlink" title="调度程序激活机制"></a>调度程序激活机制</h3><p>调度程序激活工作的目标是模拟内核线程的功能，但是为线程包提供通常在用户空间中才能实现的更好的性能和更大的灵活性。<br>基本思路是，当内核了解到一个线程被阻塞之后，内核通知该进程的运行时系统，并且在堆栈中以参数形式传递有问题的线程编号和所发生事件的一个描述。内核通过在一个已知的起始地址启动运行时系统，从而发出了通知。（上行调用）</p>
+<h3 id="弹出式线程"><a href="#弹出式线程" class="headerlink" title="弹出式线程"></a>弹出式线程</h3><p>为每一个到达的消息创建一个处理该消息的线程称为<em>弹出式线程</em>。</p>
+<h2 id="进程间通信"><a href="#进程间通信" class="headerlink" title="进程间通信"></a>进程间通信</h2><p>进程间通信（Inter Process Communication）相关的问题：</p>
+<ul>
+<li>一个进程如何把信息传递给另外一个。</li>
+<li>确保两个或更多的进程在关键活动中不会出现交叉。（不同的进程抢夺最后一个资源）</li>
+<li>顺序有关联的活动中确保正确的顺序。（生产者消费者模式，必须先生产才能消费）</li>
+</ul>
+<h3 id="竞争条件"><a href="#竞争条件" class="headerlink" title="竞争条件"></a>竞争条件</h3><p>两个或多个进程读写某些共享数据，而最后的结果取决于进程运行的精确时序，称为<strong>竞争条件</strong>（race condition）</p>
+<h3 id="临界区"><a href="#临界区" class="headerlink" title="临界区"></a>临界区</h3><p>避免竞争条件的关键就是要找出某种途径来阻止多个进程同时读写共享的数据。</p>
+<p>一个进程的一部分时间做内部计算（不会引起竞争条件的操作），某些时候执行一些会导致竞争的操作，把对共享内存进行访问的程序片段称为<strong>临界区</strong>。如果能保证多个进程不能同时处于临界区，就能避免竞争条件。<br>一个好的解决方案应该满足以下4个条件。</p>
+<ul>
+<li>任何两个进程不能同时处于其临界区。</li>
+<li>不应对CPU的速度和数量做任何假设。</li>
+<li>临界区外运行的进程不得阻塞其他进程。</li>
+<li>不得使进程无限期等待进入临界区。</li>
+</ul>
+<h3 id="忙等待的互斥"><a href="#忙等待的互斥" class="headerlink" title="忙等待的互斥"></a>忙等待的互斥</h3><ul>
+<li>屏蔽中断<br><em>单处理器中</em>，最简单的方法是使每个进程刚刚进入临界区后立即屏蔽所有中断，并在离开之前再打开中断。屏蔽中断之后CPU不再被切换到其他进程，一旦某个进程屏蔽中断后不必担心其他进程介入。</li>
+<li>锁变量<br>寻找一种软件解决方案，通过一个共享变量判断是否能进入。（共享变量本身存在竞争条件，因此不行）</li>
+<li>严格轮换法<br>两个进程轮流进行临界区进行处理，违法之前说的第三点，临界区外的进程会阻塞其他进程(进程0不能连续运行多次，必须严格按照0、1、0、1这样的循环运行)。</li>
+</ul>
+<table><tr><td>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//进程0</span></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>) {</span><br><span class="line">    <span class="keyword">while</span>(turn != <span class="number">0</span>) {</span><br><span class="line">        <span class="comment">//just loop</span></span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    doSomethingInCritical();</span><br><span class="line">    turn = <span class="number">1</span>;</span><br><span class="line">    doSomethingNotInCritical();</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+</td><td>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//进程1</span></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>) {</span><br><span class="line">    <span class="keyword">while</span>(turn != <span class="number">1</span>) {</span><br><span class="line">        <span class="comment">//just loop</span></span><br><span class="line">    }</span><br><span class="line">    </span><br><span class="line">    doSomethingInCritical();</span><br><span class="line">    turn = <span class="number">0</span>;</span><br><span class="line">    doSomethingNotInCritical();</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+</td></tr></table>
+
+<p>整型变量turn初始值为0，用于记录轮到哪个进程进入临界区，并检查或更新共享内存。连续测试一个变量直到某个值出现为止，称为<strong>忙等待</strong>。由于这种方式浪费CPU时间，通常应该避免。只有有理由认为等待时间非常短的情形下才使用忙等待。用于忙等待的锁，称为<strong>自旋锁</strong>。</p>
+<ul>
+<li>Peterson解法</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> FALSE 0</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TRUE 1</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> N 2</span></span><br><span class="line">    </span><br><span class="line"><span class="keyword">int</span> turn;</span><br><span class="line"><span class="keyword">int</span> interested[N];</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">enterRegion</span><span class="params">(<span class="keyword">int</span> process)</span> </span>{</span><br><span class="line">    interested[process] = TRUE;</span><br><span class="line">    <span class="keyword">int</span> otherProcess = <span class="number">1</span> - process;</span><br><span class="line">    turn = process;</span><br><span class="line">    <span class="keyword">while</span>(turn == process &amp;&amp; interested[otherProcess]==TRUE) {</span><br><span class="line">    </span><br><span class="line">    } </span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">leaveRegion</span><span class="params">(<span class="keyword">int</span> process)</span> </span>{</span><br><span class="line">    interested[process] = FALSE;</span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<p>通过turn的值只能为0或者1确保只有一个进程在临界区。（是否有java中的可见性问题？）</p>
+<ul>
+<li>TSL指令</li>
+</ul>
+<p>硬件支持的一种方案，许多计算机中都有下面的一条指令：</p>
+<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">TSL</span> RX, LOCK</span><br></pre></td></tr></table></figure>
+<p>称为测试并加锁，将一个内存字LOCK读到寄存器RX中，并且在内存地址上存一个非零值，读字和写字操作保证不可分割，即该指令结束之前其他处理器不允许访问该内存字。执行TSL指令的CPU将锁住内存总线，禁止其他CPU在本指令结束之前访问内存(中断在多CPU情况不满足要求)。</p>
+<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">enter_region:</span></span><br><span class="line">    TSL REGISTER, LOCK  <span class="comment">//复制锁到寄存器，并且将锁设置为1</span></span><br><span class="line">    <span class="keyword">CMP</span> REGISTER, <span class="number">#0</span>    <span class="comment">//锁是否为0？</span></span><br><span class="line">    JNE enter_region    <span class="comment">//如果不是零，说明锁已经被设置，循环。</span></span><br><span class="line">    RET</span><br><span class="line">    </span><br><span class="line"><span class="symbol">leave_region:</span></span><br><span class="line">    MOVE LOCK, <span class="number">#0</span>   <span class="comment">//释放锁</span></span><br><span class="line">    RET</span><br></pre></td></tr></table></figure>
+<p>TSL指令的替代指令为XCHG，它原子性地交换两个位置的内容。例如一个寄存器和一个存储器地址。</p>
+<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">enter_region:</span></span><br><span class="line">    <span class="keyword">MOV</span> REGISTER, <span class="number">#1</span></span><br><span class="line">    XCHG REGISTER, LOCK  <span class="comment">//复制锁到寄存器，并且将锁设置为1</span></span><br><span class="line">    <span class="keyword">CMP</span> REGISTER, <span class="number">#0</span>    <span class="comment">//锁是否为0？</span></span><br><span class="line">    JNE enter_region    <span class="comment">//如果不是零，说明锁已经被设置，循环。</span></span><br><span class="line">    RET</span><br><span class="line">    </span><br><span class="line"><span class="symbol">leave_region:</span></span><br><span class="line">    MOVE LOCK, <span class="number">#0</span>   <span class="comment">//释放锁</span></span><br><span class="line">    RET</span><br></pre></td></tr></table></figure>
+
+<h3 id="睡眠与唤醒"><a href="#睡眠与唤醒" class="headerlink" title="睡眠与唤醒"></a>睡眠与唤醒</h3><p>Peterson解法和TSL或者XCHG解法都是正确的，但是都有忙等待的缺点。这种方法不仅浪费了CPU时间，还可能引起预想不到的结果。例如一台计算机有两个进程，H优先级高，L优先级低，如果调度规则为只要H处于就绪就可以运行，如果L处于临界区中，此时H变到就绪，就会导致H一直处于忙等待状态，这种情况称为<strong>优先级反转问题</strong>，尤其是在单CPU中因为L获取不到调度不能离开共享区，导致H一直忙等待。</p>
+<p>考察进程间通信的其他原语，它们在无法进入临界区时将阻塞，而不是忙等待。sleep是一个引起调用进程阻塞的系统调用，直到另外一个进程将其唤醒。wakeup调用有一个参数即要被唤醒的进程。</p>
+<blockquote>
+<p>如果sleep和wakeup存在竞争条件时，则有可能出现唤醒丢失的情况，例如缓冲区为空消费者发现count为0，此时调度程序决定暂停消费者并启动生产者，生产者往缓冲区放入一个数据，count加1，此时生产者任务消费者此时一定在睡眠，于是调用wakeup来唤醒消费者，但是消费者并没有休眠，导致wakeup信号丢失。（count的修改和sleep和wakeup如果是原子操作则不会出现这种情况）</p>
+</blockquote>
+<h3 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h3><p>检查数值、修改变量值以及可能发生的睡眠操作当做一个单一的、不可分割的<strong>原子操作</strong>完成，保证一旦一个信号量操作开始，在该操作完成或者阻塞之前，其他进程不允许访问该信号量。</p>
+<p>up操作：如果一个或多个线程在该信号量上睡眠，无法完成之前的一个down操作，则由系统选择其中一个并允许该线程完成其down操作，信号量的值仍旧是0，但是睡眠的线程少一个。否则对信号量的值增加1。</p>
+<p>down操作：如果信号量的值大于0则将值减1，并继续允许，若值为0则休眠，此时down操作未结束。</p>
+<h3 id="互斥量"><a href="#互斥量" class="headerlink" title="互斥量"></a>互斥量</h3><p>如果不需要信号量的计算能力，可以使用信号量的一个简化版本，称为互斥量（mutex）。用于管理共享资源或一小段代码。</p>
+<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">mutex_lock:</span></span><br><span class="line">    TSL REGISTER, MUTEX</span><br><span class="line">    <span class="keyword">CMP</span> REGISTER, <span class="number">#0</span></span><br><span class="line">    JZE ok</span><br><span class="line">    CALL thread_yield</span><br><span class="line">    JMP mutex_lock</span><br><span class="line"><span class="symbol">ok:</span> RET</span><br><span class="line"></span><br><span class="line"><span class="symbol">mutex_unlock:</span></span><br><span class="line">    MOVE MUTEX, <span class="number">#0</span></span><br><span class="line">    RET</span><br></pre></td></tr></table></figure>
+
+<p>与之前的enter_region和leave_region的区别在于，enter_region进入临界区失败会始终重复测试锁，由于时钟超时的作用，会调度其他进程运行。但是在用户线程中，情况有所不同，因为没有时钟停止运行时间过长的线程，不能进行忙等待，通过调用thread_yield主动放弃CPU。</p>
+<h3 id="屏障"><a href="#屏障" class="headerlink" title="屏障"></a>屏障</h3><p>当一个进程到底屏障时，它就被屏障阻拦，直到所有进程都到达该屏障为止。屏障可用于一组进程同步。</p>
+<h3 id="读-复制-更新"><a href="#读-复制-更新" class="headerlink" title="读-复制-更新"></a>读-复制-更新</h3><p>最快的锁是没有锁，每次写时重新复制一份就数据再修改。</p>
+<h2 id="调度"><a href="#调度" class="headerlink" title="调度"></a>调度</h2><p>操作系统中，完成进程选择工作的这一部分称为<strong>调度程序</strong>，该程序使用的算法称为<strong>调度算法</strong>。</p>
+<h3 id="调度简介"><a href="#调度简介" class="headerlink" title="调度简介"></a>调度简介</h3><ol>
+<li><p>进程行为<br> 几乎所有进程的I/O请求和计算都是交替突发的。当一个进程等待外部设备完成工作而被阻塞时才是I/O活动。如果在等待I/O上花费的时机多则为I/O密集型，否则为计算密集型。</p>
+</li>
+<li><p>何时调度</p>
+</li>
+</ol>
+<ul>
+<li>创建进程时</li>
+<li>一个进程退出时</li>
+<li>当一个进程阻塞在I/O和信号量或者其他原因时</li>
+<li>在I/O中断发生时</li>
+</ul>
+<ol start="3">
+<li>调度的种类</li>
+</ol>
+<ul>
+<li>非抢占式调度：进程<em>一直运行</em>直到阻塞或者主动放弃CPU时才会发生调度。</li>
+<li>抢占式调度：划分固定的时间，在非抢占式调度的基础上，当划分的时间用完时也会发生调度（需要时钟中断的支持）。</li>
+</ul>
+<ol start="4">
+<li>调度算法分类</li>
+</ol>
+<ul>
+<li>批处理</li>
+<li>交互式</li>
+<li>实时</li>
+</ul>
+<ol start="5">
+<li>调度算法的目标</li>
+</ol>
+<ul>
+<li>吞吐量</li>
+<li>周转时间</li>
+<li>最小响应时间</li>
+</ul>
+<h3 id="批处理系统中的调度"><a href="#批处理系统中的调度" class="headerlink" title="批处理系统中的调度"></a>批处理系统中的调度</h3><ol>
+<li>先来先服务：通过一个单链表记录了所有就绪进程，每次把作业添加在队列的末尾，阻塞的进程直接加入队尾（非抢占式）。</li>
+<li>最短作业优先：当所有作业同时到达并且可以运行时，最短作业优先有最短的平均周转时间（非抢占式）。</li>
+<li>最短剩余时间优先：是是抢占模式的最短作业优先，需要知道每个进程的剩余时间（抢占式）。</li>
+</ol>
+<h3 id="交互系统中的调度"><a href="#交互系统中的调度" class="headerlink" title="交互系统中的调度"></a>交互系统中的调度</h3><h4 id="轮转调度"><a href="#轮转调度" class="headerlink" title="轮转调度"></a>轮转调度</h4><p>每个进程分配一个时间段，允许该进程在该时间段中运行。（是一种最简单、古老、公平使用最广的算法。）当一个进程使用完它的时间片后，就被移动到队列的末尾。</p>
+<p>进程的切换，需要时间，如果切换太频繁会导致管理效率太高，例如一次切换需要1ms，如果时间片设置为4m，则只有4/(1+4)=80%的利用率，为了提高cpu的效率，可以将时间片设置为99ms，这样就只会浪费1%的CPU，但是存在使需要较短运行时间的进程等待时间过长的问题（例如同时有50个进程每个都运行了100ms，会导致第51个只需要运行10ms的进程等待5秒钟）。一般将时间片设置为20至50ms比较合理。</p>
+<h4 id="优先级调度"><a href="#优先级调度" class="headerlink" title="优先级调度"></a>优先级调度</h4><p>每个进程赋予一个优先级，允许优先级最高的可运行进程先运行。还可以按优先级分组，这样在最高优先级中的进程按轮转法进行调度。</p>
+<p>优先级可以静态或者动态设定，例如针对I/O密集的进程通过1除以占用CPU的比例计算，越I/O密集优先级越高。另外为了避免优先级高的进程一直占用CPU，导致优先级低的进程饿死，可以经过一次调度就把优先级降低。另外一种方式是给予每个进程一个允许允许的最大时间片，当用完这个时间片时，次高优先级的进程变获得允许机会。</p>
+<h4 id="多级队列"><a href="#多级队列" class="headerlink" title="多级队列"></a>多级队列</h4><p>属于高优先级的进程运行1个时间片，次高级的运行2个时间片，再次一级的4个时间片，以此类推，当使用完时间片后，被移动到下一类。（解决运行时间长的进程频繁切换的问题，尤其是内存不足时，进程被切换到磁盘的情况。不能解决运行时间长，又需要交互的问题,与优先级调度类似只是时间片也是变化的）</p>
+<h4 id="最短进程优先"><a href="#最短进程优先" class="headerlink" title="最短进程优先"></a>最短进程优先</h4><p>根据进程过去的行为进行推测，并执行估计允许时间最短的那一个，假设每条命令的估计运行时间为<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.375ex" xmlns="http://www.w3.org/2000/svg" width="2.234ex" height="1.906ex" role="img" focusable="false" viewBox="0 -677 987.6 842.6"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><g data-mml-node="math"><g data-mml-node="msub"><g data-mml-node="mi"><path data-c="1D447" d="M40 437Q21 437 21 445Q21 450 37 501T71 602L88 651Q93 669 101 677H569H659Q691 677 697 676T704 667Q704 661 687 553T668 444Q668 437 649 437Q640 437 637 437T631 442L629 445Q629 451 635 490T641 551Q641 586 628 604T573 629Q568 630 515 631Q469 631 457 630T439 622Q438 621 368 343T298 60Q298 48 386 46Q418 46 427 45T436 36Q436 31 433 22Q429 4 424 1L422 0Q419 0 415 0Q410 0 363 1T228 2Q99 2 64 0H49Q43 6 43 9T45 27Q49 40 55 46H83H94Q174 46 189 55Q190 56 191 56Q196 59 201 76T241 233Q258 301 269 344Q339 619 339 625Q339 630 310 630H279Q212 630 191 624Q146 614 121 583T67 467Q60 445 57 441T43 437H40Z"></path></g><g data-mml-node="mn" transform="translate(584, -150) scale(0.707)"><path data-c="30" d="M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z"></path></g></g></g></g></svg></mjx-container>,并且测量到下次允许时间为<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.339ex" xmlns="http://www.w3.org/2000/svg" width="2.234ex" height="1.871ex" role="img" focusable="false" viewBox="0 -677 987.6 827"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><g data-mml-node="math"><g data-mml-node="msub"><g data-mml-node="mi"><path data-c="1D447" d="M40 437Q21 437 21 445Q21 450 37 501T71 602L88 651Q93 669 101 677H569H659Q691 677 697 676T704 667Q704 661 687 553T668 444Q668 437 649 437Q640 437 637 437T631 442L629 445Q629 451 635 490T641 551Q641 586 628 604T573 629Q568 630 515 631Q469 631 457 630T439 622Q438 621 368 343T298 60Q298 48 386 46Q418 46 427 45T436 36Q436 31 433 22Q429 4 424 1L422 0Q419 0 415 0Q410 0 363 1T228 2Q99 2 64 0H49Q43 6 43 9T45 27Q49 40 55 46H83H94Q174 46 189 55Q190 56 191 56Q196 59 201 76T241 233Q258 301 269 344Q339 619 339 625Q339 630 310 630H279Q212 630 191 624Q146 614 121 583T67 467Q60 445 57 441T43 437H40Z"></path></g><g data-mml-node="mn" transform="translate(584, -150) scale(0.707)"><path data-c="31" d="M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z"></path></g></g></g></g></svg></mjx-container>，可以用这两个值的加权来改进估计值，即<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.566ex" xmlns="http://www.w3.org/2000/svg" width="15.219ex" height="2.262ex" role="img" focusable="false" viewBox="0 -750 6727 1000"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><g data-mml-node="math"><g data-mml-node="mi"><path data-c="1D44E" d="M33 157Q33 258 109 349T280 441Q331 441 370 392Q386 422 416 422Q429 422 439 414T449 394Q449 381 412 234T374 68Q374 43 381 35T402 26Q411 27 422 35Q443 55 463 131Q469 151 473 152Q475 153 483 153H487Q506 153 506 144Q506 138 501 117T481 63T449 13Q436 0 417 -8Q409 -10 393 -10Q359 -10 336 5T306 36L300 51Q299 52 296 50Q294 48 292 46Q233 -10 172 -10Q117 -10 75 30T33 157ZM351 328Q351 334 346 350T323 385T277 405Q242 405 210 374T160 293Q131 214 119 129Q119 126 119 118T118 106Q118 61 136 44T179 26Q217 26 254 59T298 110Q300 114 325 217T351 328Z"></path></g><g data-mml-node="msub" transform="translate(529, 0)"><g data-mml-node="mi"><path data-c="1D447" d="M40 437Q21 437 21 445Q21 450 37 501T71 602L88 651Q93 669 101 677H569H659Q691 677 697 676T704 667Q704 661 687 553T668 444Q668 437 649 437Q640 437 637 437T631 442L629 445Q629 451 635 490T641 551Q641 586 628 604T573 629Q568 630 515 631Q469 631 457 630T439 622Q438 621 368 343T298 60Q298 48 386 46Q418 46 427 45T436 36Q436 31 433 22Q429 4 424 1L422 0Q419 0 415 0Q410 0 363 1T228 2Q99 2 64 0H49Q43 6 43 9T45 27Q49 40 55 46H83H94Q174 46 189 55Q190 56 191 56Q196 59 201 76T241 233Q258 301 269 344Q339 619 339 625Q339 630 310 630H279Q212 630 191 624Q146 614 121 583T67 467Q60 445 57 441T43 437H40Z"></path></g><g data-mml-node="mn" transform="translate(584, -150) scale(0.707)"><path data-c="30" d="M96 585Q152 666 249 666Q297 666 345 640T423 548Q460 465 460 320Q460 165 417 83Q397 41 362 16T301 -15T250 -22Q224 -22 198 -16T137 16T82 83Q39 165 39 320Q39 494 96 585ZM321 597Q291 629 250 629Q208 629 178 597Q153 571 145 525T137 333Q137 175 145 125T181 46Q209 16 250 16Q290 16 318 46Q347 76 354 130T362 333Q362 478 354 524T321 597Z"></path></g></g><g data-mml-node="mo" transform="translate(1738.8, 0)"><path data-c="2B" d="M56 237T56 250T70 270H369V420L370 570Q380 583 389 583Q402 583 409 568V270H707Q722 262 722 250T707 230H409V-68Q401 -82 391 -82H389H387Q375 -82 369 -68V230H70Q56 237 56 250Z"></path></g><g data-mml-node="mo" transform="translate(2739, 0)"><path data-c="28" d="M94 250Q94 319 104 381T127 488T164 576T202 643T244 695T277 729T302 750H315H319Q333 750 333 741Q333 738 316 720T275 667T226 581T184 443T167 250T184 58T225 -81T274 -167T316 -220T333 -241Q333 -250 318 -250H315H302L274 -226Q180 -141 137 -14T94 250Z"></path></g><g data-mml-node="mn" transform="translate(3128, 0)"><path data-c="31" d="M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z"></path></g><g data-mml-node="mo" transform="translate(3850.2, 0)"><path data-c="2212" d="M84 237T84 250T98 270H679Q694 262 694 250T679 230H98Q84 237 84 250Z"></path></g><g data-mml-node="mn" transform="translate(4850.4, 0)"><path data-c="31" d="M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z"></path></g><g data-mml-node="mo" transform="translate(5350.4, 0)"><path data-c="29" d="M60 749L64 750Q69 750 74 750H86L114 726Q208 641 251 514T294 250Q294 182 284 119T261 12T224 -76T186 -143T145 -194T113 -227T90 -246Q87 -249 86 -250H74Q66 -250 63 -250T58 -247T55 -238Q56 -237 66 -225Q221 -64 221 250T66 725Q56 737 55 738Q55 746 60 749Z"></path></g><g data-mml-node="msub" transform="translate(5739.4, 0)"><g data-mml-node="mi"><path data-c="1D447" d="M40 437Q21 437 21 445Q21 450 37 501T71 602L88 651Q93 669 101 677H569H659Q691 677 697 676T704 667Q704 661 687 553T668 444Q668 437 649 437Q640 437 637 437T631 442L629 445Q629 451 635 490T641 551Q641 586 628 604T573 629Q568 630 515 631Q469 631 457 630T439 622Q438 621 368 343T298 60Q298 48 386 46Q418 46 427 45T436 36Q436 31 433 22Q429 4 424 1L422 0Q419 0 415 0Q410 0 363 1T228 2Q99 2 64 0H49Q43 6 43 9T45 27Q49 40 55 46H83H94Q174 46 189 55Q190 56 191 56Q196 59 201 76T241 233Q258 301 269 344Q339 619 339 625Q339 630 310 630H279Q212 630 191 624Q146 614 121 583T67 467Q60 445 57 441T43 437H40Z"></path></g><g data-mml-node="mn" transform="translate(584, -150) scale(0.707)"><path data-c="31" d="M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z"></path></g></g></g></g></svg></mjx-container>。通过当前测量值和先前的估计值进行加权平均而得到下一个估计值的技术成为老化。</p>
+<h4 id="保证调度"><a href="#保证调度" class="headerlink" title="保证调度"></a>保证调度</h4><p>假设所有进程都是等价的，如果有n个进程则每个进程获得1/n的CPU时间，统计每个进程使用的时间与应该获得的时间之比，比例越少的应该优先获得时间。</p>
+<h4 id="彩票调度"><a href="#彩票调度" class="headerlink" title="彩票调度"></a>彩票调度</h4><p>给CPU时间提供一种彩票，当需要调度时随机抽一张彩票，拥有该彩票的进程获得该资源。例如一共有50张彩票，如果一个进程有10张彩票则会有20%的机会会被调度。</p>
+<h4 id="公平分享调度"><a href="#公平分享调度" class="headerlink" title="公平分享调度"></a>公平分享调度</h4><p>调度中除了考虑进程外还需要考虑进程的所有者。例如用户1运行了9个进程，用户2运行了1个进程，如果从进程的调度看用户1会占用90%的时间。</p>
+<h3 id="实时系统中的调度"><a href="#实时系统中的调度" class="headerlink" title="实时系统中的调度"></a>实时系统中的调度</h3><p>硬实时：必须满足绝对的截止时间。<br>软实时：不希望偶尔错失截止时间，但是可以容忍。</p>
+<p>实时系统中的事件分为周期性和非周期性的。如果有m个周期事件，事件i以周期P发生，并需要C秒CPU进行处理，则负载的条件是（忽略切换的时间）：<br><mjx-container class="MathJax" jax="SVG" display="true"><svg style="vertical-align: -2.811ex" xmlns="http://www.w3.org/2000/svg" width="12.831ex" height="6.346ex" role="img" focusable="false" viewBox="0 -1562.5 5671.2 2804.9"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="matrix(1 0 0 -1 0 0)"><g data-mml-node="math"><g data-mml-node="munderover"><g data-mml-node="mo"><path data-c="2211" d="M60 948Q63 950 665 950H1267L1325 815Q1384 677 1388 669H1348L1341 683Q1320 724 1285 761Q1235 809 1174 838T1033 881T882 898T699 902H574H543H251L259 891Q722 258 724 252Q725 250 724 246Q721 243 460 -56L196 -356Q196 -357 407 -357Q459 -357 548 -357T676 -358Q812 -358 896 -353T1063 -332T1204 -283T1307 -196Q1328 -170 1348 -124H1388Q1388 -125 1381 -145T1356 -210T1325 -294L1267 -449L666 -450Q64 -450 61 -448Q55 -446 55 -439Q55 -437 57 -433L590 177Q590 178 557 222T452 366T322 544L56 909L55 924Q55 945 60 948Z"></path></g><g data-mml-node="TeXAtom" transform="translate(112.8, -1084.4) scale(0.707)" data-mjx-texclass="ORD"><g data-mml-node="mi"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g><g data-mml-node="mo" transform="translate(345, 0)"><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z"></path></g><g data-mml-node="mi" transform="translate(1123, 0)"><path data-c="1D45B" d="M21 287Q22 293 24 303T36 341T56 388T89 425T135 442Q171 442 195 424T225 390T231 369Q231 367 232 367L243 378Q304 442 382 442Q436 442 469 415T503 336T465 179T427 52Q427 26 444 26Q450 26 453 27Q482 32 505 65T540 145Q542 153 560 153Q580 153 580 145Q580 144 576 130Q568 101 554 73T508 17T439 -10Q392 -10 371 17T350 73Q350 92 386 193T423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 180T152 343Q153 348 153 366Q153 405 129 405Q91 405 66 305Q60 285 60 284Q58 278 41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="mi" transform="translate(509.9, 1150) scale(0.707)"><path data-c="1D45B" d="M21 287Q22 293 24 303T36 341T56 388T89 425T135 442Q171 442 195 424T225 390T231 369Q231 367 232 367L243 378Q304 442 382 442Q436 442 469 415T503 336T465 179T427 52Q427 26 444 26Q450 26 453 27Q482 32 505 65T540 145Q542 153 560 153Q580 153 580 145Q580 144 576 130Q568 101 554 73T508 17T439 -10Q392 -10 371 17T350 73Q350 92 386 193T423 345Q423 404 379 404H374Q288 404 229 303L222 291L189 157Q156 26 151 16Q138 -11 108 -11Q95 -11 87 -5T76 7T74 17Q74 30 112 180T152 343Q153 348 153 366Q153 405 129 405Q91 405 66 305Q60 285 60 284Q58 278 41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="TeXAtom" data-mjx-texclass="ORD" transform="translate(1610.7, 0)"><g data-mml-node="mfrac"><g data-mml-node="msub" transform="translate(220, 676)"><g data-mml-node="mi"><path data-c="1D436" d="M50 252Q50 367 117 473T286 641T490 704Q580 704 633 653Q642 643 648 636T656 626L657 623Q660 623 684 649Q691 655 699 663T715 679T725 690L740 705H746Q760 705 760 698Q760 694 728 561Q692 422 692 421Q690 416 687 415T669 413H653Q647 419 647 422Q647 423 648 429T650 449T651 481Q651 552 619 605T510 659Q484 659 454 652T382 628T299 572T226 479Q194 422 175 346T156 222Q156 108 232 58Q280 24 350 24Q441 24 512 92T606 240Q610 253 612 255T628 257Q648 257 648 248Q648 243 647 239Q618 132 523 55T319 -22Q206 -22 128 53T50 252Z"></path></g><g data-mml-node="mi" transform="translate(715, -150) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g></g><g data-mml-node="msub" transform="translate(256.5, -686)"><g data-mml-node="mi"><path data-c="1D443" d="M287 628Q287 635 230 637Q206 637 199 638T192 648Q192 649 194 659Q200 679 203 681T397 683Q587 682 600 680Q664 669 707 631T751 530Q751 453 685 389Q616 321 507 303Q500 302 402 301H307L277 182Q247 66 247 59Q247 55 248 54T255 50T272 48T305 46H336Q342 37 342 35Q342 19 335 5Q330 0 319 0Q316 0 282 1T182 2Q120 2 87 2T51 1Q33 1 33 11Q33 13 36 25Q40 41 44 43T67 46Q94 46 127 49Q141 52 146 61Q149 65 218 339T287 628ZM645 554Q645 567 643 575T634 597T609 619T560 635Q553 636 480 637Q463 637 445 637T416 636T404 636Q391 635 386 627Q384 621 367 550T332 412T314 344Q314 342 395 342H407H430Q542 342 590 392Q617 419 631 471T645 554Z"></path></g><g data-mml-node="mi" transform="translate(642, -150) scale(0.707)"><path data-c="1D456" d="M184 600Q184 624 203 642T247 661Q265 661 277 649T290 619Q290 596 270 577T226 557Q211 557 198 567T184 600ZM21 287Q21 295 30 318T54 369T98 420T158 442Q197 442 223 419T250 357Q250 340 236 301T196 196T154 83Q149 61 149 51Q149 26 166 26Q175 26 185 29T208 43T235 78T260 137Q263 149 265 151T282 153Q302 153 302 143Q302 135 293 112T268 61T223 11T161 -11Q129 -11 102 10T74 74Q74 91 79 106T122 220Q160 321 166 341T173 380Q173 404 156 404H154Q124 404 99 371T61 287Q60 286 59 284T58 281T56 279T53 278T49 278T41 278H27Q21 284 21 287Z"></path></g></g><rect width="1209" height="60" x="120" y="220"></rect></g></g><g data-mml-node="mo" transform="translate(3337.4, 0)"><path data-c="3C" d="M694 -11T694 -19T688 -33T678 -40Q671 -40 524 29T234 166L90 235Q83 240 83 250Q83 261 91 266Q664 540 678 540Q681 540 687 534T694 519T687 505Q686 504 417 376L151 250L417 124Q686 -4 687 -5Q694 -11 694 -19Z"></path><path data-c="3D" d="M56 347Q56 360 70 367H707Q722 359 722 347Q722 336 708 328L390 327H72Q56 332 56 347ZM56 153Q56 168 72 173H708Q722 163 722 153Q722 140 707 133H70Q56 140 56 153Z" transform="translate(778, 0)"></path></g><g data-mml-node="mn" transform="translate(5171.2, 0)"><path data-c="31" d="M213 578L200 573Q186 568 160 563T102 556H83V602H102Q149 604 189 617T245 641T273 663Q275 666 285 666Q294 666 302 660V361L303 61Q310 54 315 52T339 48T401 46H427V0H416Q395 3 257 3Q121 3 100 0H88V46H114Q136 46 152 46T177 47T193 50T201 52T207 57T213 61V578Z"></path></g></g></g></svg></mjx-container></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2019/02/12/2019-02-12-%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F-%E7%BC%96%E8%AF%91%E5%99%A8%E4%BC%98%E5%8C%96/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1092,96 +1432,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2016/04/28/2016-04-28-JVM%E7%AC%94%E8%AE%B0%E4%BA%8C-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/mountain.jpg">
-      <meta itemprop="name" content="wjainng">
-      <meta itemprop="description" content="学而不思则罔思而不学则殆">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="WJAINNG">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2016/04/28/2016-04-28-JVM%E7%AC%94%E8%AE%B0%E4%BA%8C-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E4%B8%8E%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E7%AD%96%E7%95%A5/" class="post-title-link" itemprop="url">JVM笔记二[垃圾收集器与内存分配策略]</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2016-04-28 22:06:55" itemprop="dateCreated datePublished" datetime="2016-04-28T22:06:55+08:00">2016-04-28</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="垃圾收集器与内存分配策略"><a href="#垃圾收集器与内存分配策略" class="headerlink" title="垃圾收集器与内存分配策略"></a>垃圾收集器与内存分配策略</h1><h2 id="GC概述"><a href="#GC概述" class="headerlink" title="GC概述"></a>GC概述</h2><p>GC需要完成的3件事情。</p>
-<ul>
-<li>哪些内存需要回收？(回收对象,what)</li>
-<li>什么时候回收？(回收时间,when)</li>
-<li>如何回收？(回收方法,how)</li>
-</ul>
-<p>程序计数器，虚拟机栈，本地方法栈区域中的内容随线程而生，随线程而灭，因此不需要考虑回收的问题。Java堆和方法区则不一样，只有程序运行时才知道会创建哪些对象，这部分内存的分配和回收都是动态的，是垃圾收集器所关注的部分。</p>
-<h2 id="对象能够被回收的条件"><a href="#对象能够被回收的条件" class="headerlink" title="对象能够被回收的条件"></a>对象能够被回收的条件</h2><p>垃圾收集器在堆进行回收前，需要确定这些对象是否还被使用。</p>
-<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>给对象添加一个引用计数器，每当有一个地方引用则加一，当引用失效则减一，当引用计数为0时，表示可以回收。<em>缺点是不能解决对象相互循环引用的问题</em><br>例如：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CircularReference</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        ObjB objB = <span class="keyword">new</span> ObjB();</span><br><span class="line">        ObjA objA = <span class="keyword">new</span> ObjA(objB);</span><br><span class="line">        objB.setObjA(objA);</span><br><span class="line"></span><br><span class="line">        objA = <span class="keyword">null</span>;</span><br><span class="line">        objB = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ObjA</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> ObjB objB = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ObjA</span><span class="params">(ObjB objB)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.objB = objB;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ObjB</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> ObjA objA = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setObjA</span><span class="params">(ObjA objA)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.objA = objA;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
-
-<h3 id="对象可达性分析算法"><a href="#对象可达性分析算法" class="headerlink" title="对象可达性分析算法"></a>对象可达性分析算法</h3><p>Java使用可达性分析(Reachability Analysis)来判定对象是否存活。通过一系列的“GC Roots”对象作为起始点，从这些节点开始搜索，搜索所走过的路径称为引用链(Reference Chain),当一个对象到GC Roots没有任何引用链相连则该对象是不可用的。</p>
-<p>java语言中可以作为GC Root的对象如下：</p>
-<ol>
-<li>虚拟机栈中引用的对象(栈帧中的本地变量表)。</li>
-<li>方法区中类静态属性引用的对象。</li>
-<li>方法区中常量引用的对象。</li>
-<li>本地方法栈中引用的对象(Native方法)。</li>
-</ol>
-<h3 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h3><p>JDK1.2之后，java堆引用的概念进行了扩充，有下面四种引用。</p>
-<ol>
-<li>强引用。(Strong Reference)</li>
-<li>软引用。(Soft Reference)</li>
-<li>弱引用。(Weak Reference)</li>
-<li>虚引用。(Phantom Reference)<br>引用强调依次逐渐减弱。<br>参考<a href="/2016/04/28/Java%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B/">Java 引用类型</a></li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -1253,7 +1503,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-count">60</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1293,7 +1543,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2020</span>
+  <span itemprop="copyrightYear">2021</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
@@ -1354,6 +1604,59 @@
   
 
   
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
 
   
 

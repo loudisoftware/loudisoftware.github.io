@@ -1,0 +1,35 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+together {
+    class Invoker {}
+
+    interface ICommand {
+        + execute():void
+    }
+}
+
+Invoker o-right-> ICommand
+
+together {
+
+    class Client {}
+
+    class Receiver {
+        + action():void
+    }
+
+    class ConcreteCommand implements ICommand {
+
+    }
+
+}
+
+Client -right-> Receiver
+Client .right.> ConcreteCommand
+
+ConcreteCommand -left-> Receiver
+
+@enduml

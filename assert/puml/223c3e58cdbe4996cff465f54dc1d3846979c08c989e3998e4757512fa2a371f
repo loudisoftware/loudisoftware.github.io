@@ -1,0 +1,11 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+Caretaker --> Originator : createMemento
+Originator --> Memento : new Memento
+Originator --> Memento : setState
+
+Caretaker --> Originator : setMemento
+@enduml

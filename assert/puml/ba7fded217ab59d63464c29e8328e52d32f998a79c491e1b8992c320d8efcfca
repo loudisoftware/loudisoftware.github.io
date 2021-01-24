@@ -1,0 +1,18 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+class Context {
+    - state:State
+    + request():void
+    + changeState(State state):void
+}
+note left: state.handle(this)
+abstract class State {
+    + handle(Context context):void
+}
+class StateA extends State {}
+class StateB extends State {}
+Context o-> State
+@enduml

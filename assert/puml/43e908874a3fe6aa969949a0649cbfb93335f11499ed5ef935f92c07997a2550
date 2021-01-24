@@ -1,0 +1,20 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+abstract class Abstraction {
+    + operation():void
+}
+
+class RefinedAbstraction extends Abstraction {}
+
+abstract class AbstractionImpl {
+    + operationImpl():void
+}
+
+class AbstractionImplA extends AbstractionImpl {} 
+class AbstractionImplB extends AbstractionImpl {} 
+
+Abstraction o-> AbstractionImpl
+@enduml

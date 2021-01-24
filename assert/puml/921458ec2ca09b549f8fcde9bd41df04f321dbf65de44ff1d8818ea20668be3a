@@ -1,0 +1,37 @@
+@startuml
+skinparam monochrome true
+'scale  400 width
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam class {
+    
+}
+
+class Director {
+    - builder:Builder
+    + construct():void
+}
+
+abstract class Builder {
+    + buildPart1():void
+    + buildPart2():void
+    + {abstract} retrieveResult():Product
+} 
+
+class ConcreteBuilder1 extends Builder{}
+class ConcreteBuilder2 extends Builder{}
+
+interface IProduct{} 
+class Product1 {}
+class Product2 {}
+
+ConcreteBuilder1 -down-> Product1 :creates
+
+ConcreteBuilder2 -down-> Product2 : creates
+
+Product1 .down.|> IProduct
+Product2 .down.|> IProduct
+
+Director o-right-> Builder
+
+@enduml

@@ -1,0 +1,24 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+interface IProduct {}
+class ProductA {}
+class ProductB {}
+
+class Factory {
+    {static} + getProduct(pro:String):IProduct
+}
+
+class Client {}
+
+IProduct <|.. ProductA
+IProduct <|.. ProductB
+ProductA <.. Factory
+ProductB <.. Factory
+
+IProduct <.. Client
+Factory <.left. Client
+
+@enduml

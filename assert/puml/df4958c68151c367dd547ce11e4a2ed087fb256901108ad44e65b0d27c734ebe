@@ -1,0 +1,40 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+
+
+package sharedpool {
+
+
+class ConcreteFlyweight {
+
+}
+
+class UnsharedConcreteFlyweight implements IFlyweight {
+
+}
+}
+
+class FlyweightFactory {
+
+}
+
+class Client1 {
+
+}
+
+class Client2 {
+
+}
+
+Client1 -down-> ConcreteFlyweight
+Client2 -down-> ConcreteFlyweight
+
+ConcreteFlyweight .left.|> IFlyweight
+
+FlyweightFactory -left-> ConcreteFlyweight
+FlyweightFactory -left-> UnsharedConcreteFlyweight
+
+@enduml

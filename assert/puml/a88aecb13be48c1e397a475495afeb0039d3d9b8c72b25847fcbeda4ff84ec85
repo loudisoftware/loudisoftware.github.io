@@ -1,0 +1,31 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+interface IComponent {
+    + operation():void
+    + add(IComponent):void
+    + remove(IComponent):void
+    + getChild(int):IComponent
+}
+
+together {
+    class Leaf {
+        + operation():void
+    }
+    Leaf .up.|> IComponent
+    Class Composite implements IComponent{
+        + operation():void
+        + add(IComponent g):void
+        + remove(IComponent):void
+        + getChild(int):IComponent
+
+    }
+    note "forall c in components\n\tc.operation()" as N1
+}
+Composite o-->IComponent
+Client .left.> IComponent
+Composite .right. N1
+
+@enduml

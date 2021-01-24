@@ -1,0 +1,50 @@
+@startuml
+skinparam monochrome true
+'skinparam handwritten true
+skinparam class {
+    'BackgroundColor Lightblue 
+    
+    BackgroundColor<<WIN>>  Lightblue
+    BorderColor<<WIN>> DarkSlateGray
+}
+WinButton <<WIN>>
+WinText <<WIN>>
+'WinFactory <<WIN>>
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+interface IButton {
+    +  click():void
+}
+
+interface IText {
+    + draw():void
+}
+
+interface IFactory {
+    + getButton():IButton;
+    + getText():IText;
+}
+
+
+class UnixButton implements  IButton {}
+class WinButton implements IButton {}
+
+class UnixText implements IText {}
+class WinText implements IText {} 
+
+class UnixFactory {
+}
+class WinFactory <<WIN>> {
+}
+
+UnixFactory .d.|> IFactory
+WinFactory .d.|> IFactory
+
+UnixFactory .u.> UnixButton
+UnixFactory .u.> UnixText
+
+WinFactory .u.> WinButton
+WinFactory .u.> WinText
+
+@enduml

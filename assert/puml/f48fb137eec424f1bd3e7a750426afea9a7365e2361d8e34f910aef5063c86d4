@@ -1,0 +1,22 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+class Originator {
+    + setMemento(Memento m):void
+    + createMemento():Memento
+}
+
+class Memento{
+    + getState():State
+    - setState(State state): void
+}
+
+class Caretaker {}
+
+Originator .left.> Memento
+Caretaker o-right->Memento
+
+Caretaker -right-> Originator
+
+@enduml

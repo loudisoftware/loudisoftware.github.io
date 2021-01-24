@@ -1,0 +1,20 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+Client -> Receiver :new Receiver
+return receiver
+
+Client -> ConcreteCommand :new Command
+return command
+
+Client -> ConcreteCommand :setReceiver(receiver)
+
+Client -> Invoker : setCommand(command)
+
+Invoker -> ConcreteCommand: execute()
+
+ConcreteCommand -> Receiver:action()
+
+@enduml

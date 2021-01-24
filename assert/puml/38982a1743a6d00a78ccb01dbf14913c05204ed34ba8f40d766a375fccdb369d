@@ -1,0 +1,25 @@
+@startuml
+package "具体实现\n不稳定 1"<<Frame>> {
+
+}
+package "具体实现\n不稳定 2"<<Frame>> {
+
+}
+package "具体实现\n不稳定 3"<<Frame>> {
+
+}
+package "稳定"<<Frame>>{
+}
+
+package "更稳定"<<Frame>>{
+}
+
+package "不稳定"<<Frame>>{
+}
+
+"具体实现\n不稳定 1"..>"稳定"
+"具体实现\n不稳定 2"..>"稳定"
+"具体实现\n不稳定 3"..>"稳定"
+"稳定" ..x "不稳定"
+"稳定" ..>"更稳定"
+@enduml

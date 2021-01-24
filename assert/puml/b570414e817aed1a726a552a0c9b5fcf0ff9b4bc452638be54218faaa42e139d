@@ -1,0 +1,25 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+abstract class Component {
+    + operation :void
+}
+
+class ConcreteComponent extends Component {}
+
+class Decorator extends Component {
+    - component:Component
+    
+}
+together {
+note "通过在operation中调用\naddBehavior增加额外的功能" as N1
+
+class ConcreteDecorator extends Decorator{
+    - addBehavior():void
+    + operation :void
+}
+}
+Decorator o-down-> Component
+@enduml

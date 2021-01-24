@@ -185,6 +185,71 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/12/22/2019-12-22-Spring-MVC-%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/mountain.jpg">
+      <meta itemprop="name" content="wjainng">
+      <meta itemprop="description" content="学而不思则罔思而不学则殆">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="WJAINNG">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/12/22/2019-12-22-Spring-MVC-%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">Spring MVC 笔记</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-12-22 16:00:32" itemprop="dateCreated datePublished" datetime="2019-12-22T16:00:32+08:00">2019-12-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-16 23:15:44" itemprop="dateModified" datetime="2020-09-16T23:15:44+08:00">2020-09-16</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>DispatcherServlet</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2019/12/15/2019-12-15-Spring%E7%AC%94%E8%AE%B0%E6%B1%87%E6%80%BB/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1736,346 +1801,6 @@ select * from actor a left join film_actor f on a.id = f.actor_id  where a.name 
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2019/03/17/2019-03-17-%E7%8E%B0%E4%BB%A3%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0-2%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/mountain.jpg">
-      <meta itemprop="name" content="wjainng">
-      <meta itemprop="description" content="学而不思则罔思而不学则殆">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="WJAINNG">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2019/03/17/2019-03-17-%E7%8E%B0%E4%BB%A3%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%AC%94%E8%AE%B0-2%E8%BF%9B%E7%A8%8B%E4%B8%8E%E7%BA%BF%E7%A8%8B/" class="post-title-link" itemprop="url">现代操作系统笔记-2进程与线程</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2019-03-17 11:11:19" itemprop="dateCreated datePublished" datetime="2019-03-17T11:11:19+08:00">2019-03-17</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-17 23:22:51" itemprop="dateModified" datetime="2020-09-17T23:22:51+08:00">2020-09-17</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <h1 id="进程与线程"><a href="#进程与线程" class="headerlink" title="进程与线程"></a>进程与线程</h1><p>操作系统中最核心的概念是<strong>进程</strong>:是对正在运行程序的一个抽象。</p>
-<h2 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h2><h3 id="进程模型"><a href="#进程模型" class="headerlink" title="进程模型"></a>进程模型</h3><blockquote>
-<p>计算机上所有可运行的软件，包括操作系统，被组织成若干<strong>顺序进程</strong>，简称<strong>进程</strong>。一个进程就是一个正在执行程序的实例，包括程序计数器，寄存器和变量的当前值。</p>
-</blockquote>
-<p>一个进程是某种类型的一个活动，包括程序、输入、输出以及状态。</p>
-<h3 id="进程的创建"><a href="#进程的创建" class="headerlink" title="进程的创建"></a>进程的创建</h3><ul>
-<li>系统初始化</li>
-<li>正在运行的程序执行了创建进程的系统调用</li>
-<li>用户请求创建一个新的进程</li>
-<li>一个批处理作业的初始化</li>
-</ul>
-<blockquote>
-<p>UNIX中子进程的初始地址空间是父进程的一个副本，其中不可写的内存区是共享的，可写的内存不共享。或者共享所有内存通过写时复制的方式确保想修改发生在私有内存区域。</p>
-</blockquote>
-<h3 id="进程的终止"><a href="#进程的终止" class="headerlink" title="进程的终止"></a>进程的终止</h3><ul>
-<li>正常退出(自愿的)</li>
-<li>出错退出(自愿的)例如程序中的错误</li>
-<li>严重错误(非自愿)</li>
-<li>被其他进程杀死(非自愿)</li>
-</ul>
-<h3 id="进程的状态"><a href="#进程的状态" class="headerlink" title="进程的状态"></a>进程的状态</h3><ul>
-<li>运行态(该进程实际占用CPU)</li>
-<li>就绪态(可运行,但是没有CPU资源而暂时停止)</li>
-<li>阻塞态(除非某种外部事件发生,否则进程不能运行)</li>
-</ul>
-<p><img src="/images/os-process-status.svg"></p>
-<p><small>上图中的1和2由调度程序引起，当操作系统发现程序不能继续运行下去例如等待I/O等时会发生转换3，当进程等待的外部事件发生时例如I/O完成则发生转换4</small></p>
-<h3 id="进程的实现"><a href="#进程的实现" class="headerlink" title="进程的实现"></a>进程的实现</h3><p>操作系统维护着一张表格（一个结构数组），即<strong>进程表</strong>。每个进程占用一个进程表项（也称为进程控制块）。包括程序计数器、堆栈指针、内存分配情况、所打开文件的状态、账号和调度信息、以及状态转换时必须保存的信息，<strong>保证进程随后能再次启动，像从未被中断过一样</strong>。</p>
-<p>典型进程表项中的一些字段：</p>
-<ul>
-<li>进程管理：寄存器、程序计数器、程序状态字、堆栈指针、进程状态、优先级、调度参数、进程ID、父进程、进程组、信号、进程开始时间、使用CPU时间、子进程的CPU时间、下次定时器时间</li>
-<li>存储管理：正文段指针、数据段指针、堆栈段指针</li>
-<li>文件管理：根目录、工作目录、文件描述符、用户ID、组ID</li>
-</ul>
-<p>与I/O类关联的是一个称作<strong>中断向量</strong>（interrupt vector）的位置（内存底部的固定区域），包含中断服务程序的入口。</p>
-<h3 id="多道程序设计模型"><a href="#多道程序设计模型" class="headerlink" title="多道程序设计模型"></a>多道程序设计模型</h3><p>当内存中有n个进程，如果进程在等待I/O操作的时候和停留在内存中的比为p则n个进程都在等待I/O的概率为$p^n$则：<br>$$CPU利用率=1-p^n$$</p>
-<h2 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h2><p>传统操作系统中，每个进程有一个地址空间和一个控制线程。经常存在同一个地址空间中准并行运行多个控制线程的情形，这些线程像分离的进程（共享地址空间除外）。</p>
-<h3 id="线程的使用"><a href="#线程的使用" class="headerlink" title="线程的使用"></a>线程的使用</h3><p>需要多线程的原因是，在许多应用中同时发生多种活动，其中某些活动随着时间的推移会被阻塞，将这些应用程序分解成可以并行运行的多个顺序线程，程序设计模型会变得更简单。</p>
-<p>线程比进程更轻量级，更容易创建和撤销。许多系统中创建线程比创建进程要快10到100倍。</p>
-<p>如果同一个应用程序存在大量的计算和大量的I/O处理，拥有多个线程允许这些活动彼此重叠进行，从而加快应用程序执行的速度。（<em>如果多个线程都是CPU密集型的，则并不能获得性能的增强</em>）</p>
-<p>书中以一种组织web服务器的方式为例，在允许多线程的情况下，一个<em>分派程序</em>（dispatcher）的线程负责从网络中读入工作请求，检查请求后，分派线程调用一个空转的（被阻塞的）<em>工作线程</em>（worker thread），提交请求。分派线程唤醒工作线程，从阻塞状态转换为就绪状态。</p>
-<table>
-<thead>
-<tr>
-<th>模型</th>
-<th>特性</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>多线程</td>
-<td>并行性、阻塞系统调用</td>
-</tr>
-<tr>
-<td>单线程进程</td>
-<td>无并行性、阻塞系统调用</td>
-</tr>
-<tr>
-<td>有限状态机</td>
-<td>并行性、非阻塞系统调用、中断</td>
-</tr>
-</tbody></table>
-<h3 id="经典的线程模型"><a href="#经典的线程模型" class="headerlink" title="经典的线程模型"></a>经典的线程模型</h3><p>进程模型基于两种独立的概念：<em>资源分组处理与执行</em>。将这两种概念分开就引入了“线程”这个概念。进程用于把资源集中到一起而线程则是在CPU上被调度执行的实体。</p>
-<p>线程之间没有保护的原因：</p>
-<ul>
-<li>不可能</li>
-<li>没有必要</li>
-</ul>
-<blockquote>
-<p>因为线程之间是共享地址空间的，另外一个进程由某个用户所拥有，创建多个线程是为了它们之间的合作而不是彼此之间的争斗。</p>
-</blockquote>
-<table>
-<thead>
-<tr>
-<th>每个进程中的内容</th>
-<th>每个线程中的内容</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>地址空间</td>
-<td>程序计数器</td>
-</tr>
-<tr>
-<td>全局变量</td>
-<td>寄存器</td>
-</tr>
-<tr>
-<td>打开文件</td>
-<td>堆栈</td>
-</tr>
-<tr>
-<td>子进程</td>
-<td>状态</td>
-</tr>
-<tr>
-<td>定时器</td>
-<td></td>
-</tr>
-<tr>
-<td>信号和信号处理程序</td>
-<td></td>
-</tr>
-<tr>
-<td>账户信息</td>
-<td></td>
-</tr>
-</tbody></table>
-<h3 id="POSIX线程"><a href="#POSIX线程" class="headerlink" title="POSIX线程"></a>POSIX线程</h3><p>为实现可移植的线程程序，IEEE定义了线程的标准。它定义的线程包叫做pthread，大部分UNIX系统都支持该标准。</p>
-<p>每一个线程都有一个标志符、一组寄存器（包括程序计数器）和一组存储在结构中的属性。（堆栈大小、调度参数等）</p>
-<p>一些pthread的函数调用</p>
-<table>
-<thead>
-<tr>
-<th>线程调用</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>pthread_create</td>
-<td>创建一个新线程</td>
-</tr>
-<tr>
-<td>pthread_exit</td>
-<td>结束调用的线程</td>
-</tr>
-<tr>
-<td>pthread_join</td>
-<td>等待一个特定的线程退出</td>
-</tr>
-<tr>
-<td>pthread_yield</td>
-<td>释放CPU来运行另外一个线程</td>
-</tr>
-<tr>
-<td>pthread_attr_init</td>
-<td>创建并初始化一个线程的属性结构</td>
-</tr>
-<tr>
-<td>pthread_attr_destroy</td>
-<td>删除一个线程的属性结构</td>
-</tr>
-</tbody></table>
-<h3 id="在用户空间实现线程"><a href="#在用户空间实现线程" class="headerlink" title="在用户空间实现线程"></a>在用户空间实现线程</h3><p>把整个线程包放在用户空间中，内核对线程包一无所知，从内核的角度考虑，就是按正常的方式管理，即单线程进程。线程在一个运行时系统的上层运行，运行时系统是一个管理线程的过程的集合。并且每个进程要有专用的线程表，用来跟踪该进程中的线程，与进程表类似，线程表用来记录各个线程的属性。线程表由运行时系统管理，当一个线程转换到就绪或者阻塞状态时，在该线程表中存放重新启动该线程所需的信息，与内核在进程表中存放进程的信息完全一样。</p>
-<p>优点：</p>
-<ul>
-<li>可以在不支持线程的操作系统上实现多线程。</li>
-<li>线程切换比陷入内核进行切换快一个数量级。（不需要陷入内核，不需要上下文切换，也不需要对内存高速缓存进行刷新）</li>
-<li>允许每个进程有自己定制的调度算法。</li>
-<li>更好的扩展性。（内核空间中内核线程需要一些固定表格空间和堆栈空间，如果内核线程数量非常大，可能出现问题）</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li>难实现阻塞系统调用。（要避免被阻塞的线程影响其他线程，但是内核并不知道这一一切,例如缺页中断会导致整个进程阻塞）</li>
-<li>没有时钟中断，不可能用轮转调度的方式调度线程，如果一次线程一开始运行除非主动放弃CPU，否则其他线程就不能运行。</li>
-</ul>
-<blockquote>
-<p>系统调用可以全部改成非阻塞的，但是需要操作系统的支持。例如对键盘的read操作可以只返回0字节而不是阻塞。还有就是如果某个调用会阻塞则提前通知，例如可以通过调用select判断read是否会阻塞，这样可以在read之前先通过select进行判断，类似NIO。<br>线程永久运行的一个可能方案是让运行时系统请求每秒一次的时钟信号（中断）。</p>
-</blockquote>
-<h3 id="在内核中实现线程"><a href="#在内核中实现线程" class="headerlink" title="在内核中实现线程"></a>在内核中实现线程</h3><p>此时不需要运行时系统，每个进程中也没有线程表，相反在内核中有用来记录系统中所有线程的线程表。通过一个系统调用对线程表的更新完成线程的创建或撤销工作。</p>
-<p>所有能够阻塞线程的调用都以系统调用的形式实现，当一个线程阻塞时，内核根据其选择，可以运行同一个进程中的另一个线程或者运行另一个进程中的线程。（用户级线程中，运行时系统时钟运行自己进程中的线程）</p>
-<p>问题：</p>
-<ul>
-<li>多线程创建新的进程时，新进程是拥有与原进程相同数量的线程，还是只有一个线程？应该与新建进程的目的有关系。</li>
-<li>当信号到达时，应该由哪一个线程处理？</li>
-</ul>
-<h3 id="混合实现"><a href="#混合实现" class="headerlink" title="混合实现"></a>混合实现</h3><p>一种将用户级线程的优点和内核级线程的优点结合起来的方法是使用内核级线程，然后将用户级线程和某些或者全部内核线路多路复用起来。</p>
-<p><img src="/images/os-thread-imp.svg"></p>
-<h3 id="调度程序激活机制"><a href="#调度程序激活机制" class="headerlink" title="调度程序激活机制"></a>调度程序激活机制</h3><p>调度程序激活工作的目标是模拟内核线程的功能，但是为线程包提供通常在用户空间中才能实现的更好的性能和更大的灵活性。<br>基本思路是，当内核了解到一个线程被阻塞之后，内核通知该进程的运行时系统，并且在堆栈中以参数形式传递有问题的线程编号和所发生事件的一个描述。内核通过在一个已知的起始地址启动运行时系统，从而发出了通知。（上行调用）</p>
-<h3 id="弹出式线程"><a href="#弹出式线程" class="headerlink" title="弹出式线程"></a>弹出式线程</h3><p>为每一个到达的消息创建一个处理该消息的线程称为<em>弹出式线程</em>。</p>
-<h2 id="进程间通信"><a href="#进程间通信" class="headerlink" title="进程间通信"></a>进程间通信</h2><p>进程间通信（Inter Process Communication）相关的问题：</p>
-<ul>
-<li>一个进程如何把信息传递给另外一个。</li>
-<li>确保两个或更多的进程在关键活动中不会出现交叉。（不同的进程抢夺最后一个资源）</li>
-<li>顺序有关联的活动中确保正确的顺序。（生产者消费者模式，必须先生产才能消费）</li>
-</ul>
-<h3 id="竞争条件"><a href="#竞争条件" class="headerlink" title="竞争条件"></a>竞争条件</h3><p>两个或多个进程读写某些共享数据，而最后的结果取决于进程运行的精确时序，称为<strong>竞争条件</strong>（race condition）</p>
-<h3 id="临界区"><a href="#临界区" class="headerlink" title="临界区"></a>临界区</h3><p>避免竞争条件的关键就是要找出某种途径来阻止多个进程同时读写共享的数据。</p>
-<p>一个进程的一部分时间做内部计算（不会引起竞争条件的操作），某些时候执行一些会导致竞争的操作，把对共享内存进行访问的程序片段称为<strong>临界区</strong>。如果能保证多个进程不能同时处于临界区，就能避免竞争条件。<br>一个好的解决方案应该满足以下4个条件。</p>
-<ul>
-<li>任何两个进程不能同时处于其临界区。</li>
-<li>不应对CPU的速度和数量做任何假设。</li>
-<li>临界区外运行的进程不得阻塞其他进程。</li>
-<li>不得使进程无限期等待进入临界区。</li>
-</ul>
-<h3 id="忙等待的互斥"><a href="#忙等待的互斥" class="headerlink" title="忙等待的互斥"></a>忙等待的互斥</h3><ul>
-<li>屏蔽中断<br><em>单处理器中</em>，最简单的方法是使每个进程刚刚进入临界区后立即屏蔽所有中断，并在离开之前再打开中断。屏蔽中断之后CPU不再被切换到其他进程，一旦某个进程屏蔽中断后不必担心其他进程介入。</li>
-<li>锁变量<br>寻找一种软件解决方案，通过一个共享变量判断是否能进入。（共享变量本身存在竞争条件，因此不行）</li>
-<li>严格轮换法<br>两个进程轮流进行临界区进行处理，违法之前说的第三点，临界区外的进程会阻塞其他进程(进程0不能连续运行多次，必须严格按照0、1、0、1这样的循环运行)。</li>
-</ul>
-<table><tr><td>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//进程0</span></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="keyword">while</span>(turn != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="comment">//just loop</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    doSomethingInCritical();</span><br><span class="line">    turn = <span class="number">1</span>;</span><br><span class="line">    doSomethingNotInCritical();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</td><td>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//进程1</span></span><br><span class="line"><span class="keyword">while</span>(<span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="keyword">while</span>(turn != <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="comment">//just loop</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    doSomethingInCritical();</span><br><span class="line">    turn = <span class="number">0</span>;</span><br><span class="line">    doSomethingNotInCritical();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-</td></tr></table>
-
-<p>整型变量turn初始值为0，用于记录轮到哪个进程进入临界区，并检查或更新共享内存。连续测试一个变量直到某个值出现为止，称为<strong>忙等待</strong>。由于这种方式浪费CPU时间，通常应该避免。只有有理由认为等待时间非常短的情形下才使用忙等待。用于忙等待的锁，称为<strong>自旋锁</strong>。</p>
-<ul>
-<li>Peterson解法</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> FALSE 0</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> TRUE 1</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> N 2</span></span><br><span class="line">    </span><br><span class="line"><span class="keyword">int</span> turn;</span><br><span class="line"><span class="keyword">int</span> interested[N];</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">enterRegion</span><span class="params">(<span class="keyword">int</span> process)</span> </span>&#123;</span><br><span class="line">    interested[process] = TRUE;</span><br><span class="line">    <span class="keyword">int</span> otherProcess = <span class="number">1</span> - process;</span><br><span class="line">    turn = process;</span><br><span class="line">    <span class="keyword">while</span>(turn == process &amp;&amp; interested[otherProcess]==TRUE) &#123;</span><br><span class="line">    </span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">leaveRegion</span><span class="params">(<span class="keyword">int</span> process)</span> </span>&#123;</span><br><span class="line">    interested[process] = FALSE;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>通过turn的值只能为0或者1确保只有一个进程在临界区。（是否有java中的可见性问题？）</p>
-<ul>
-<li>TSL指令</li>
-</ul>
-<p>硬件支持的一种方案，许多计算机中都有下面的一条指令：</p>
-<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">TSL</span> RX, LOCK</span><br></pre></td></tr></table></figure>
-<p>称为测试并加锁，将一个内存字LOCK读到寄存器RX中，并且在内存地址上存一个非零值，读字和写字操作保证不可分割，即该指令结束之前其他处理器不允许访问该内存字。执行TSL指令的CPU将锁住内存总线，禁止其他CPU在本指令结束之前访问内存(中断在多CPU情况不满足要求)。</p>
-<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">enter_region:</span></span><br><span class="line">    TSL REGISTER, LOCK  <span class="comment">//复制锁到寄存器，并且将锁设置为1</span></span><br><span class="line">    <span class="keyword">CMP</span> REGISTER, <span class="number">#0</span>    <span class="comment">//锁是否为0？</span></span><br><span class="line">    JNE enter_region    <span class="comment">//如果不是零，说明锁已经被设置，循环。</span></span><br><span class="line">    RET</span><br><span class="line">    </span><br><span class="line"><span class="symbol">leave_region:</span></span><br><span class="line">    MOVE LOCK, <span class="number">#0</span>   <span class="comment">//释放锁</span></span><br><span class="line">    RET</span><br></pre></td></tr></table></figure>
-<p>TSL指令的替代指令为XCHG，它原子性地交换两个位置的内容。例如一个寄存器和一个存储器地址。</p>
-<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">enter_region:</span></span><br><span class="line">    <span class="keyword">MOV</span> REGISTER, <span class="number">#1</span></span><br><span class="line">    XCHG REGISTER, LOCK  <span class="comment">//复制锁到寄存器，并且将锁设置为1</span></span><br><span class="line">    <span class="keyword">CMP</span> REGISTER, <span class="number">#0</span>    <span class="comment">//锁是否为0？</span></span><br><span class="line">    JNE enter_region    <span class="comment">//如果不是零，说明锁已经被设置，循环。</span></span><br><span class="line">    RET</span><br><span class="line">    </span><br><span class="line"><span class="symbol">leave_region:</span></span><br><span class="line">    MOVE LOCK, <span class="number">#0</span>   <span class="comment">//释放锁</span></span><br><span class="line">    RET</span><br></pre></td></tr></table></figure>
-
-<h3 id="睡眠与唤醒"><a href="#睡眠与唤醒" class="headerlink" title="睡眠与唤醒"></a>睡眠与唤醒</h3><p>Peterson解法和TSL或者XCHG解法都是正确的，但是都有忙等待的缺点。这种方法不仅浪费了CPU时间，还可能引起预想不到的结果。例如一台计算机有两个进程，H优先级高，L优先级低，如果调度规则为只要H处于就绪就可以运行，如果L处于临界区中，此时H变到就绪，就会导致H一直处于忙等待状态，这种情况称为<strong>优先级反转问题</strong>，尤其是在单CPU中因为L获取不到调度不能离开共享区，导致H一直忙等待。</p>
-<p>考察进程间通信的其他原语，它们在无法进入临界区时将阻塞，而不是忙等待。sleep是一个引起调用进程阻塞的系统调用，直到另外一个进程将其唤醒。wakeup调用有一个参数即要被唤醒的进程。</p>
-<blockquote>
-<p>如果sleep和wakeup存在竞争条件时，则有可能出现唤醒丢失的情况，例如缓冲区为空消费者发现count为0，此时调度程序决定暂停消费者并启动生产者，生产者往缓冲区放入一个数据，count加1，此时生产者任务消费者此时一定在睡眠，于是调用wakeup来唤醒消费者，但是消费者并没有休眠，导致wakeup信号丢失。（count的修改和sleep和wakeup如果是原子操作则不会出现这种情况）</p>
-</blockquote>
-<h3 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h3><p>检查数值、修改变量值以及可能发生的睡眠操作当做一个单一的、不可分割的<strong>原子操作</strong>完成，保证一旦一个信号量操作开始，在该操作完成或者阻塞之前，其他进程不允许访问该信号量。</p>
-<p>up操作：如果一个或多个线程在该信号量上睡眠，无法完成之前的一个down操作，则由系统选择其中一个并允许该线程完成其down操作，信号量的值仍旧是0，但是睡眠的线程少一个。否则对信号量的值增加1。</p>
-<p>down操作：如果信号量的值大于0则将值减1，并继续允许，若值为0则休眠，此时down操作未结束。</p>
-<h3 id="互斥量"><a href="#互斥量" class="headerlink" title="互斥量"></a>互斥量</h3><p>如果不需要信号量的计算能力，可以使用信号量的一个简化版本，称为互斥量（mutex）。用于管理共享资源或一小段代码。</p>
-<figure class="highlight arm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">mutex_lock:</span></span><br><span class="line">    TSL REGISTER, MUTEX</span><br><span class="line">    <span class="keyword">CMP</span> REGISTER, <span class="number">#0</span></span><br><span class="line">    JZE ok</span><br><span class="line">    CALL thread_yield</span><br><span class="line">    JMP mutex_lock</span><br><span class="line"><span class="symbol">ok:</span> RET</span><br><span class="line"></span><br><span class="line"><span class="symbol">mutex_unlock:</span></span><br><span class="line">    MOVE MUTEX, <span class="number">#0</span></span><br><span class="line">    RET</span><br></pre></td></tr></table></figure>
-
-<p>与之前的enter_region和leave_region的区别在于，enter_region进入临界区失败会始终重复测试锁，由于时钟超时的作用，会调度其他进程运行。但是在用户线程中，情况有所不同，因为没有时钟停止运行时间过长的线程，不能进行忙等待，通过调用thread_yield主动放弃CPU。</p>
-<h3 id="屏障"><a href="#屏障" class="headerlink" title="屏障"></a>屏障</h3><p>当一个进程到底屏障时，它就被屏障阻拦，直到所有进程都到达该屏障为止。屏障可用于一组进程同步。</p>
-<h3 id="读-复制-更新"><a href="#读-复制-更新" class="headerlink" title="读-复制-更新"></a>读-复制-更新</h3><p>最快的锁是没有锁，每次写时重新复制一份就数据再修改。</p>
-<h2 id="调度"><a href="#调度" class="headerlink" title="调度"></a>调度</h2><p>操作系统中，完成进程选择工作的这一部分称为<strong>调度程序</strong>，该程序使用的算法称为<strong>调度算法</strong>。</p>
-<h3 id="调度简介"><a href="#调度简介" class="headerlink" title="调度简介"></a>调度简介</h3><ol>
-<li><p>进程行为<br> 几乎所有进程的I/O请求和计算都是交替突发的。当一个进程等待外部设备完成工作而被阻塞时才是I/O活动。如果在等待I/O上花费的时机多则为I/O密集型，否则为计算密集型。</p>
-</li>
-<li><p>何时调度</p>
-</li>
-</ol>
-<ul>
-<li>创建进程时</li>
-<li>一个进程退出时</li>
-<li>当一个进程阻塞在I/O和信号量或者其他原因时</li>
-<li>在I/O中断发生时</li>
-</ul>
-<ol start="3">
-<li>调度的种类</li>
-</ol>
-<ul>
-<li>非抢占式调度：进程<em>一直运行</em>直到阻塞或者主动放弃CPU时才会发生调度。</li>
-<li>抢占式调度：划分固定的时间，在非抢占式调度的基础上，当划分的时间用完时也会发生调度（需要时钟中断的支持）。</li>
-</ul>
-<ol start="4">
-<li>调度算法分类</li>
-</ol>
-<ul>
-<li>批处理</li>
-<li>交互式</li>
-<li>实时</li>
-</ul>
-<ol start="5">
-<li>调度算法的目标</li>
-</ol>
-<ul>
-<li>吞吐量</li>
-<li>周转时间</li>
-<li>最小响应时间</li>
-</ul>
-<h3 id="批处理系统中的调度"><a href="#批处理系统中的调度" class="headerlink" title="批处理系统中的调度"></a>批处理系统中的调度</h3><ol>
-<li>先来先服务：通过一个单链表记录了所有就绪进程，每次把作业添加在队列的末尾，阻塞的进程直接加入队尾（非抢占式）。</li>
-<li>最短作业优先：当所有作业同时到达并且可以运行时，最短作业优先有最短的平均周转时间（非抢占式）。</li>
-<li>最短剩余时间优先：是是抢占模式的最短作业优先，需要知道每个进程的剩余时间（抢占式）。</li>
-</ol>
-<h3 id="交互系统中的调度"><a href="#交互系统中的调度" class="headerlink" title="交互系统中的调度"></a>交互系统中的调度</h3><h4 id="轮转调度"><a href="#轮转调度" class="headerlink" title="轮转调度"></a>轮转调度</h4><p>每个进程分配一个时间段，允许该进程在该时间段中运行。（是一种最简单、古老、公平使用最广的算法。）当一个进程使用完它的时间片后，就被移动到队列的末尾。</p>
-<p>进程的切换，需要时间，如果切换太频繁会导致管理效率太高，例如一次切换需要1ms，如果时间片设置为4m，则只有4/(1+4)=80%的利用率，为了提高cpu的效率，可以将时间片设置为99ms，这样就只会浪费1%的CPU，但是存在使需要较短运行时间的进程等待时间过长的问题（例如同时有50个进程每个都运行了100ms，会导致第51个只需要运行10ms的进程等待5秒钟）。一般将时间片设置为20至50ms比较合理。</p>
-<h4 id="优先级调度"><a href="#优先级调度" class="headerlink" title="优先级调度"></a>优先级调度</h4><p>每个进程赋予一个优先级，允许优先级最高的可运行进程先运行。还可以按优先级分组，这样在最高优先级中的进程按轮转法进行调度。</p>
-<p>优先级可以静态或者动态设定，例如针对I/O密集的进程通过1除以占用CPU的比例计算，越I/O密集优先级越高。另外为了避免优先级高的进程一直占用CPU，导致优先级低的进程饿死，可以经过一次调度就把优先级降低。另外一种方式是给予每个进程一个允许允许的最大时间片，当用完这个时间片时，次高优先级的进程变获得允许机会。</p>
-<h4 id="多级队列"><a href="#多级队列" class="headerlink" title="多级队列"></a>多级队列</h4><p>属于高优先级的进程运行1个时间片，次高级的运行2个时间片，再次一级的4个时间片，以此类推，当使用完时间片后，被移动到下一类。（解决运行时间长的进程频繁切换的问题，尤其是内存不足时，进程被切换到磁盘的情况。不能解决运行时间长，又需要交互的问题,与优先级调度类似只是时间片也是变化的）</p>
-<h4 id="最短进程优先"><a href="#最短进程优先" class="headerlink" title="最短进程优先"></a>最短进程优先</h4><p>根据进程过去的行为进行推测，并执行估计允许时间最短的那一个，假设每条命令的估计运行时间为$T_0$,并且测量到下次允许时间为$T_1$，可以用这两个值的加权来改进估计值，即$aT_0+(1-1)T_1$。通过当前测量值和先前的估计值进行加权平均而得到下一个估计值的技术成为老化。</p>
-<h4 id="保证调度"><a href="#保证调度" class="headerlink" title="保证调度"></a>保证调度</h4><p>假设所有进程都是等价的，如果有n个进程则每个进程获得1/n的CPU时间，统计每个进程使用的时间与应该获得的时间之比，比例越少的应该优先获得时间。</p>
-<h4 id="彩票调度"><a href="#彩票调度" class="headerlink" title="彩票调度"></a>彩票调度</h4><p>给CPU时间提供一种彩票，当需要调度时随机抽一张彩票，拥有该彩票的进程获得该资源。例如一共有50张彩票，如果一个进程有10张彩票则会有20%的机会会被调度。</p>
-<h4 id="公平分享调度"><a href="#公平分享调度" class="headerlink" title="公平分享调度"></a>公平分享调度</h4><p>调度中除了考虑进程外还需要考虑进程的所有者。例如用户1运行了9个进程，用户2运行了1个进程，如果从进程的调度看用户1会占用90%的时间。</p>
-<h3 id="实时系统中的调度"><a href="#实时系统中的调度" class="headerlink" title="实时系统中的调度"></a>实时系统中的调度</h3><p>硬实时：必须满足绝对的截止时间。<br>软实时：不希望偶尔错失截止时间，但是可以容忍。</p>
-<p>实时系统中的事件分为周期性和非周期性的。如果有m个周期事件，事件i以周期P发生，并需要C秒CPU进行处理，则负载的条件是（忽略切换的时间）：<br>$$<br>    \sum_{i=n}^n {C_i \over  P_i} &lt;= 1<br>$$</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -2147,7 +1872,7 @@ select * from actor a left join film_actor f on a.id = f.actor_id  where a.name 
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">59</span>
+          <span class="site-state-item-count">60</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -2187,7 +1912,7 @@ select * from actor a left join film_actor f on a.id = f.actor_id  where a.name 
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2020</span>
+  <span itemprop="copyrightYear">2021</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
@@ -2248,59 +1973,6 @@ select * from actor a left join film_actor f on a.id = f.actor_id  where a.name 
   
 
   
-      
-
-<script>
-  if (typeof MathJax === 'undefined') {
-    window.MathJax = {
-      loader: {
-        source: {
-          '[tex]/amsCd': '[tex]/amscd',
-          '[tex]/AMScd': '[tex]/amscd'
-        }
-      },
-      tex: {
-        inlineMath: {'[+]': [['$', '$']]},
-        tags: 'ams'
-      },
-      options: {
-        renderActions: {
-          findScript: [10, doc => {
-            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
-              const display = !!node.type.match(/; *mode=display/);
-              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
-              const text = document.createTextNode('');
-              node.parentNode.replaceChild(text, node);
-              math.start = {node: text, delim: '', n: 0};
-              math.end = {node: text, delim: '', n: 0};
-              doc.math.push(math);
-            });
-          }, '', false],
-          insertedScript: [200, () => {
-            document.querySelectorAll('mjx-container').forEach(node => {
-              let target = node.parentNode;
-              if (target.nodeName.toLowerCase() === 'li') {
-                target.parentNode.classList.add('has-jax');
-              }
-            });
-          }, '', false]
-        }
-      }
-    };
-    (function () {
-      var script = document.createElement('script');
-      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
-      script.defer = true;
-      document.head.appendChild(script);
-    })();
-  } else {
-    MathJax.startup.document.state(0);
-    MathJax.texReset();
-    MathJax.typeset();
-  }
-</script>
-
-    
 
   
 

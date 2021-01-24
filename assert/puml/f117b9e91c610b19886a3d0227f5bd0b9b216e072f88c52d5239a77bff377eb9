@@ -1,0 +1,14 @@
+@startuml
+package "A"<<Frame>> {
+    
+}
+package "B"<<Frame>> {
+}
+package "C"<<Frame>> {
+}
+
+"A" .> "B"
+"B" ..> "C"
+"C" .> "A"
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+abstract class Aggregate {
+    + createIterator():Iterator
+}
+class Client {}
+interface Iterator {
+    + first()
+    + next()
+    + isDone()
+    + currentItem()
+}
+
+Client -right-> Iterator
+Client -left-> Aggregate
+class ConcreteAggregate extends Aggregate {
+
+}
+
+class ConcreteIterator implements Iterator {
+
+}
+
+ConcreteIterator  -left- ConcreteAggregate
+
+@enduml

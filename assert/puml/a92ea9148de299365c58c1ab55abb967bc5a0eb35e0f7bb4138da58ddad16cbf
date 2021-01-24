@@ -1,0 +1,33 @@
+@startuml
+skinparam monochrome true
+hide footbox 
+
+'scale  400 width
+'skinparam classAttributeIconSize 0
+'skinparam linetype ortho
+
+Client -[hidden]> Director
+Client -> ConcreteBuilder1 : new ConcreteBuilder1
+activate ConcreteBuilder1
+ConcreteBuilder1 --> Client : builder1
+deactivate ConcreteBuilder1
+Client -> Director :new Director(builder1)
+activate Director
+
+Director --> Client : director
+deactivate Director
+
+Client -> Director :constructor
+
+activate Director
+Director -> ConcreteBuilder1 : buildPart1
+activate ConcreteBuilder1
+Director -> ConcreteBuilder1 : buildPart2
+deactivate ConcreteBuilder1
+Director -[hidden]> ConcreteBuilder1 
+deactivate Director
+Client -> ConcreteBuilder1 :retrieveResult
+activate ConcreteBuilder1
+ConcreteBuilder1 --> Client :product
+deactivate ConcreteBuilder1
+@enduml

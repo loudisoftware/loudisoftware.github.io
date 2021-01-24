@@ -1,0 +1,22 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+interface ISubject {
+    + addObserver(Observer observer):void
+    + removeObserver(Observer observer):void
+    + getState():State
+    + notify():void
+}
+note right : for all o in observers\n\to.update(this)
+
+interface IObserver {
+    + update(Subject subject):void
+    - state:State
+}
+note right: state = subject.getState()
+
+ISubject o-->IObserver 
+
+@enduml

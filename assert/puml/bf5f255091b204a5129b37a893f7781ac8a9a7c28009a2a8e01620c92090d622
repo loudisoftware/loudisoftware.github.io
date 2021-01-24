@@ -1,0 +1,38 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+together {
+abstract class Visitor {
+    + visitElementA(ConcreteElementA a):void
+    + visitElementB(ConcreteElementB b):void
+}
+class ConcreteVisitor1 extends Visitor {}
+class ConcreteVisitor2 extends Visitor {}
+}
+together {
+abstract Element {
+    + accept(Visitor visitor):void
+}
+class ConcreteElementA extends Element {
+    + accept(Visitor visitor):void
+}
+'note top of ConcreteElementA: visitor.visitConcreteElementA()
+class ConcreteElementB extends Element {
+    + accept(Visitor visitor):void
+}
+'note top of ConcreteElementB: visitor.visitConcreteElementB()
+
+
+note "visitor.visitConcreteElementB()" as N1
+note "visitor.visitConcreteElementA()" as N2
+ConcreteElementB.N1
+ConcreteElementA.N2
+}
+Client -right-> Visitor
+Client -left-> ObjectStruct
+
+Class ObjectStruct {}
+ObjectStruct -down-> Element
+@enduml

@@ -1,0 +1,15 @@
+@startuml
+skinparam monochrome true
+'scale  400 width
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+interface IPrototype {
+    + clone() : IPrototype
+}
+
+class PrototypeA implements IPrototype {}
+class PrototypeB implements IPrototype {}
+
+Client .right.> IPrototype
+@enduml

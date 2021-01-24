@@ -1,0 +1,44 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+
+
+together {
+
+class Client1
+
+abstract class Handler {
+    - handler : Handler
+    + handleRequest: void
+}
+Handler o..>Handler
+}
+
+Client1 -right-> Handler
+
+class ConcreteHandlerA extends Handler{
+    - canHandle():boolean
+    - realHandle():void 
+}
+
+class ConcreteHandlerB extends Handler{
+    - canHandle():boolean
+    - realHandle():void 
+}
+
+
+
+ConcreteHandlerB -left[hidden]-> ConcreteHandlerA
+
+
+hide Client1
+
+Client -right-> Handler
+
+note "if canHandle  \n\t realHandle \n else \n\thandler.handleRequest" as N1
+
+ConcreteHandlerB.N1
+
+@enduml

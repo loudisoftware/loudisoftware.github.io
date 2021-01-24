@@ -1,0 +1,36 @@
+@startuml
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+interface IProduct {
+    +  doSomething():void
+}
+interface IFactory {
+    + getProduct():IProduct
+}
+
+class ProductA {}
+class ProductB {}
+
+class FactoryA {}
+
+class FactoryB {}
+
+class Client{
+    - factory:IFactory
+}
+
+ProductA .up.|> IProduct
+ProductB .up.|> IProduct
+
+FactoryA .up.|> IFactory
+FactoryB .up.|> IFactory
+
+
+FactoryA .left.> ProductA
+FactoryB .left.> ProductB
+
+Client -right-> IFactory
+Client .left.> IProduct
+
+@enduml
